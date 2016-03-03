@@ -3,6 +3,7 @@ project(SunPathTracer)
 
 # host compiler settings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # CUDA settings
 find_package(CUDA QUIET REQUIRED)
