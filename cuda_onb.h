@@ -16,6 +16,11 @@ public:
         InitFromW(_w);
     }
 
+    __device__ cudaONB(const float3& _v, const float3& _w)
+    {
+        InitFromVW(_v, _w);
+    }
+
     __device__ void InitFromW(const float3& _w)
     {
         w = _w;
@@ -30,6 +35,13 @@ public:
             v = make_float3(0.f, w.z * invLength, -w.y * invLength);
         }
         u = cross(v, w);
+    }
+
+    __device__ void InitFromVW(const float3& _v, const float3& _w)
+    {
+        w = _w;
+        u = cross(_v, w);
+        v = cross(w, u);
     }
 public:
     float3 u, v, w;
