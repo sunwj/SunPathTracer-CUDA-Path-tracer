@@ -10,13 +10,14 @@
 class cudaRay
 {
 public:
+    __device__ cudaRay() {}
     __device__ cudaRay(const float3& orig, const float3& dir)
     {
         this->orig = orig;
         this->dir = dir;
     }
 
-    __device__ float3 PointOnRay(float t)
+    __device__ float3 PointOnRay(float t) const
     {
         return orig + t * dir;
     }
