@@ -41,8 +41,8 @@ public:
 
             // check valid interval
             if(*t < 0.f)
-                t = (-b + discr) / (2.f * a);
-            if(*t < 0.f || t > (FLT_MAX - 1.f))
+                *t = (-b + discr) / (2.f * a);
+            if(*t < 0.f || *t > (FLT_MAX - 1.f))
                 return false;
 
             return true;
