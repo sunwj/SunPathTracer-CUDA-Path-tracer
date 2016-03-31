@@ -39,10 +39,12 @@ public:
         tanFovOverTwo = tanf(fov * 0.5f * M_PI / 180.f);
     }
 
+    // TODO: depth of field
+    // TODO: jittered sampling
     __device__ void GenerateRay(unsigned int x, unsigned int y, curandState& rng, cudaRay* ray)
     {
-        float nx = 2.f * ((x + curand_uniform(rng)) / imageW) - 1.f;
-        float ny = 2.f * ((y + curand_uniform(rng)) / imageH) - 1.f;
+        float nx = 2.f * ((x + curand_uniform(rng)) / (imageW - 1.f)) - 1.f;
+        float ny = 2.f * ((y + curand_uniform(rng)) / (imageH - 1.f)) - 1.f;
 
         nx = nx * aspectRatio * tanFovOverTwo;
         ny = ny * tanFovOverTwo;
