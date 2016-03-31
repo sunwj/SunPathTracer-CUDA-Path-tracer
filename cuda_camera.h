@@ -41,7 +41,7 @@ public:
 
     // TODO: depth of field
     // TODO: jittered sampling
-    __device__ void GenerateRay(unsigned int x, unsigned int y, curandState& rng, cudaRay* ray)
+    __device__ void GenerateRay(unsigned int x, unsigned int y, curandState& rng, cudaRay* ray) const
     {
         float nx = 2.f * ((x + curand_uniform(rng)) / (imageW - 1.f)) - 1.f;
         float ny = 2.f * ((y + curand_uniform(rng)) / (imageH - 1.f)) - 1.f;
