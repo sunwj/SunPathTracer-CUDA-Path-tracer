@@ -6,6 +6,7 @@
 #define SUNPATHTRACER_RAY_H
 
 #include <cuda_runtime.h>
+#include "helper_math.h"
 
 class cudaRay
 {
