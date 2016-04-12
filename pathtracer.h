@@ -1,0 +1,8 @@
+//
+// Created by 孙万捷 on 16/4/7.
+//
+
+#ifndef SUNPATHTRACER_PATHTRACER_H
+#define SUNPATHTRACER_PATHTRACER_H
+
+#endif //SUNPATHTRACER_PATHTRACER_H
