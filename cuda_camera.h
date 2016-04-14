@@ -14,7 +14,7 @@
 class cudaCamera
 {
 public:
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fov, unsigned int _imageW,
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx, float fovy, unsigned int _imageW,
                                    unsigned int _imageH)
     {
         pos = _pos;
@@ -24,10 +24,11 @@ public:
         imageW = _imageW;
         imageH = _imageH;
         aspectRatio = (float)imageW / (float)imageH;
-        tanFovOverTwo = tanf(fov * 0.5f * M_PI / 180.f);
+        tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
+        tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
     }
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fov, unsigned int _imageW, unsigned int _imageH)
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
     {
         pos = _pos;
         w = normalize(pos - target);
@@ -36,7 +37,21 @@ public:
         imageW = _imageW;
         imageH = _imageH;
         aspectRatio = (float)imageW / (float)imageH;
-        tanFovOverTwo = tanf(fov * 0.5f * M_PI / 180.f);
+        tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
+        tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
+    }
+
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& viewDir, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
+    {
+        pos = _pos;
+        w = -viewDir;
+        u = cross(up, w);
+        v = cross(w, u);
+        imageW = _imageW;
+        imageH = _imageH;
+        aspectRatio = (float)imageW / (float)imageH;
+        tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
+        tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
     }
 
     // TODO: depth of field
@@ -46,8 +61,8 @@ public:
         float nx = 2.f * ((x + curand_uniform(&rng)) / (imageW - 1.f)) - 1.f;
         float ny = 2.f * ((y + curand_uniform(&rng)) / (imageH - 1.f)) - 1.f;
 
-        nx = nx * aspectRatio * tanFovOverTwo;
-        ny = ny * tanFovOverTwo;
+        nx = nx * aspectRatio * tanFovxOverTwo;
+        ny = ny * tanFovyOverTwo;
 
         ray->orig = pos;
         ray->dir = normalize(nx * u + ny * v - w);
@@ -56,7 +71,8 @@ public:
 public:
     unsigned int imageW, imageH;
     float aspectRatio;
-    float tanFovOverTwo;
+    float tanFovxOverTwo;
+    float tanFovyOverTwo;
     float3 pos;
     float3 u, v, w;
 };
