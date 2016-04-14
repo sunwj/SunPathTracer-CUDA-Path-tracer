@@ -41,18 +41,18 @@ public:
         tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
     }
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& viewDir, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
-    {
-        pos = _pos;
-        w = -viewDir;
-        u = cross(up, w);
-        v = cross(w, u);
-        imageW = _imageW;
-        imageH = _imageH;
-        aspectRatio = (float)imageW / (float)imageH;
-        tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
-        tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
-    }
+    //__host__ __device__ cudaCamera(const float3& _pos, const float3& viewDir, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
+    //{
+    //    pos = _pos;
+    //    w = -viewDir;
+    //    u = cross(up, w);
+    //    v = cross(w, u);
+    //    imageW = _imageW;
+    //    imageH = _imageH;
+    //    aspectRatio = (float)imageW / (float)imageH;
+    //    tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
+    //    tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
+    //}
 
     // TODO: depth of field
     // TODO: jittered sampling

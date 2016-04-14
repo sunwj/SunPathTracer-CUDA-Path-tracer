@@ -18,10 +18,10 @@ find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLUT_INCLUDE_DIR})
 
-set(CUDA_SOURCES)
+set(CUDA_SOURCES pathtracer.cu)
 set(SOURCE_FILES main.cpp)
 
 cuda_compile(CUDA_OBJS ${CUDA_SOURCES})
 
-add_executable(SunPathTracer ${SOURCE_FILES} ${CUDA_OBJS})
+add_executable(SunPathTracer ${SOURCE_FILES} ${CUDA_OBJS} cuda_material.h)
 target_link_libraries(SunPathTracer ${CUDA_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY})
