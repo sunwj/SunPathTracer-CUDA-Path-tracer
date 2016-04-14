@@ -7,6 +7,7 @@
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
 
+#include "helper_cuda.h"
 #include "cuda_camera.h"
 #include "cuda_shape.h"
 #include "pathtracer.h"
@@ -17,6 +18,9 @@ auto constexpr HEIGHT = 480;
 GLuint pbo;
 
 cudaGraphicsResource_t resource;
+float3* mc_buffer;
+
+cudaCamera cam(make_float3(10.f, 0.f, 1.f), make_float3(0.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), 30.f, 30.f, WIDTH, HEIGHT);
 
 void init()
 {
@@ -26,8 +30,11 @@ void init()
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof(uchar4) * WIDTH * HEIGHT, NULL, GL_DYNAMIC_COPY);
 
-    cudaSetDevice(0);
-    cudaGraphicsGLRegisterBuffer(&resource, pbo, cudaGraphicsRegisterFlagsNone);
+    checkCudaErrors(cudaSetDevice(0));
+    checkCudaErrors(cudaGraphicsGLRegisterBuffer(&resource, pbo, cudaGraphicsRegisterFlagsNone));
+
+    checkCudaErrors(cudaMalloc((void**)&mc_buffer, sizeof(float3) * WIDTH * HEIGHT));
+    checkCudaErrors(cudaMemset((void*)mc_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
 }
 
 void display()
@@ -35,10 +42,12 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     uchar4* img;
     size_t size;
-    cudaGraphicsMapResources(1, &resource);
-    cudaGraphicsResourceGetMappedPointer((void**)&img, &size, resource);
+    checkCudaErrors(cudaGraphicsMapResources(1, &resource));
+    checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&img, &size, resource));
 
-    cudaGraphicsUnmapResources(1, &resource);
+    //todo: add rendering function call
+
+    checkCudaErrors(cudaGraphicsUnmapResources(1, &resource));
 
     glDrawPixels(WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     
