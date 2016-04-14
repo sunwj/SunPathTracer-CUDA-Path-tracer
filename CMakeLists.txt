@@ -19,7 +19,7 @@ include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLUT_INCLUDE_DIR})
 
 set(CUDA_SOURCES pathtracer.cu)
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp Scene.cpp)
 
 cuda_compile(CUDA_OBJS ${CUDA_SOURCES})
 
