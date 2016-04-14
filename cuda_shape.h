@@ -10,14 +10,17 @@
 #include <cuda_runtime.h>
 
 #include "cuda_ray.h"
+#include "cuda_material.h"
 
 class cudaSphere
 {
 public:
-    __host__ __device__ cudaSphere(const float3& _center, float _radius)
+    __host__ __device__ cudaSphere(const float3& _center, float _radius, unsigned int _material_id)
     {
         center = _center;
         radius = _radius;
+
+        material_id = _material_id;
     }
 
     __device__ bool Intersect(const cudaRay& ray, float* t) const
@@ -29,22 +32,19 @@ public:
         float b = 2.f * dot(ray.dir, L);
         float c = dot(L, L) - radius * radius;
 
-        float discr = b * b - 4.f * /*a*/ * c;
+        float discr = b * b - 4.f * /*a **/ c;
         if(discr > 0.f)
         {
             discr = sqrtf(discr);
-            *t = (-b - discr) /*/ (2.f * a)*/ * 0.5f;
 
-            // check valid interval
             constexpr float eps = 0.001f;
-            if(*t < eps)
-                *t = (-b + discr) /*/ (2.f * a)*/ * 0.5f;
-            if(*t < eps || *t > (FLT_MAX - 1.f))
+            if((*t = (-b - discr) /*/ (2.f * a)*/ * 0.5f) > eps)
+                return true;
+            else if((*t = (-b + discr) /*/ (2.f * a)*/ * 0.5f) > eps)
+                return true;
+            else
                 return false;
-
-            return true;
         }
-
         return false;
     }
 
@@ -56,31 +56,37 @@ public:
 public:
     float3 center;
     float radius;
+
+    unsigned int material_id;
 };
 
 class cudaAABB
 {
 public:
-    __host__ __device__ cudaAABB(const float3& _bMax, const float3& _bMin)
+    __host__ __device__ cudaAABB(const float3& _bMax, const float3& _bMin, unsigned int _material_id)
     {
         bMax = _bMax;
         bMin = _bMin;
+
+        material_id = _material_id;
     }
 
+    //todo: test it
     __device__ bool Intersect(const cudaRay& ray, float* t) const
     {
         float3 tmin = (bMin - ray.orig) / ray.dir;
         float3 tmax = (bMax - ray.orig) / ray.dir;
 
         float3 real_min = fminf(tmin, tmax);
-        fllat3 real_max = fmaxf(tmin, tmax);
+        float3 real_max = fmaxf(tmin, tmax);
 
         float minmax = fminf(fminf(real_max.x, real_max.y), real_max.z);
         float maxmin = fmaxf(fmaxf(real_min.x, real_min.y), real_min.z);
 
         if(minmax >= maxmin)
         {
-            if(maxmin > 0.001f)
+            constexpr float eps = 0.001f;
+            if(maxmin > eps)
             {
                 *t = maxmin;
                 return true;
@@ -93,11 +99,13 @@ public:
     __device__ float3 GetNormal(const float3& pt) const
     {
         float3 normal;
-        if(fabsf(bMin.x - pt.x) < 0.001f) normal = make_float3(-1.f, 0.f, 0.f);
-        else if(fabsf(bMax.x - pt.x) < 0.001f) normal = make_float3(1.f, 0.f, 0.f);
-        else if(fabsf(bMin.y - pt.y) < 0.001f) normal = make_float3(0.f, -1.f, 0.f);
-        else if(fabsf(bMax.y - pt.y) < 0.001f) normal = make_float3(0.f, 1.f, 0.f);
-        else if(fabsf(bMin.z - pt.z) < 0.001f) normal = make_float3(0.f, 0.f, -1.f);
+        constexpr float eps = 0.001f;
+
+        if(fabsf(bMin.x - pt.x) < eps) normal = make_float3(-1.f, 0.f, 0.f);
+        else if(fabsf(bMax.x - pt.x) < eps) normal = make_float3(1.f, 0.f, 0.f);
+        else if(fabsf(bMin.y - pt.y) < eps) normal = make_float3(0.f, -1.f, 0.f);
+        else if(fabsf(bMax.y - pt.y) < eps) normal = make_float3(0.f, 1.f, 0.f);
+        else if(fabsf(bMin.z - pt.z) < eps) normal = make_float3(0.f, 0.f, -1.f);
         else normal = make_float3(0.f, 0.f, 1.f);
 
         return normal;
@@ -105,6 +113,8 @@ public:
 
 public:
     float3 bMax, bMin;
+
+    unsigned int material_id;
 };
 
 #endif //SUNPATHTRACER_SHAPE_H
