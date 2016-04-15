@@ -63,7 +63,7 @@ public:
 class cudaAABB
 {
 public:
-    __host__ __device__ cudaAABB(const float3& _bMax, const float3& _bMin, unsigned int _material_id)
+    __host__ __device__ cudaAABB(const float3& _bMin, const float3& _bMax, unsigned int _material_id)
     {
         bMax = _bMax;
         bMin = _bMin;
@@ -71,7 +71,6 @@ public:
         material_id = _material_id;
     }
 
-    //todo: test it
     __device__ bool Intersect(const cudaRay& ray, float* t) const
     {
         float3 tmin = (bMin - ray.orig) / ray.dir;
@@ -116,5 +115,15 @@ public:
 
     unsigned int material_id;
 };
+
+//todo: add triangle
+class cudaTriangle
+{
+public:
+public:
+    
+};
+
+//todo: add plane
 
 #endif //SUNPATHTRACER_SHAPE_H

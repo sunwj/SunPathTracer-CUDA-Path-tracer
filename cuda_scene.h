@@ -14,35 +14,43 @@
 class cudaScene
 {
 public:
-    Scene()
+    cudaScene()
     {
+        materials = NULL;
+
         spheres = NULL;
         aabb_boxes = NULL;
-
-        materials = NULL;
     }
 
-    ~Scene()
+    ~cudaScene()
     {
-        if(spheres != NULL)
-            checkCudaErrors(cudaFree(spheres));
-
-        if(aabb_boxes != NULL)
-            checkCudaErrors(cudaFree(aabb_boxes));
-
-        if(materials != NULL)
-            checkCudaErrors(cudaFree(materials));
+        //todo: fix it
+        ////release materials
+        //if(materials != NULL)
+        //    checkCudaErrors(cudaFree(materials));
+//
+        ////release geometries
+        //if(spheres != NULL)
+        //    checkCudaErrors(cudaFree(spheres));
+//
+        //if(aabb_boxes != NULL)
+        //    checkCudaErrors(cudaFree(aabb_boxes));
     }
 
 public:
+    //camera
+    cudaCamera camera;
+
+    //materials
+    unsigned int num_materials;
+    cudaMaterial* materials;
+
+    //geometries
     unsigned int num_spheres;
     cudaSphere* spheres;
 
     unsigned int num_aabb_boxes;
     cudaAABB* aabb_boxes;
-
-    unsigned int num_materials;
-    cudaMaterial* materials;
 };
 
 #endif //SUNPATHTRACER_CUDA_SCENE_H
