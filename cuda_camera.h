@@ -16,12 +16,12 @@ class cudaCamera
 public:
     __host__ __device__ cudaCamera() {}
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx = M_PI / 4, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx = 45.f, unsigned int _imageW = 640, unsigned int _imageH = 480)
     {
         Setup(_pos, _u, _v, _w, fovx, _imageW, _imageH);
     }
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx = M_PI / 4, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx = 45.f, unsigned int _imageW = 640, unsigned int _imageH = 480)
     {
         Setup(_pos, target, up, fovx, _imageW, _imageH);
     }
@@ -36,7 +36,6 @@ public:
         imageH = _imageH;
         aspectRatio = (float)imageW / (float)imageH;
         tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
-        tanFovyOverTwo = tanf((fovx / aspectRatio) * 0.5f * M_PI / 180.f);
     }
 
     __host__ __device__ void Setup(const float3& _pos, const float3& target, const float3& up, float fovx, unsigned int _imageW, unsigned int _imageH)
@@ -49,7 +48,6 @@ public:
         imageH = _imageH;
         aspectRatio = (float)imageW / (float)imageH;
         tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
-        tanFovyOverTwo = tanf((fovx / aspectRatio) * 0.5f * M_PI / 180.f);
     }
 
     // TODO: depth of field
@@ -60,7 +58,7 @@ public:
         float ny = 2.f * ((y + curand_uniform(&rng)) / (imageH - 1.f)) - 1.f;
 
         nx = nx * aspectRatio * tanFovxOverTwo;
-        ny = ny * tanFovyOverTwo;
+        ny = ny * tanFovxOverTwo;
 
         ray->orig = pos;
         ray->dir = normalize(nx * u + ny * v - w);
@@ -70,7 +68,6 @@ public:
     unsigned int imageW, imageH;
     float aspectRatio;
     float tanFovxOverTwo;
-    float tanFovyOverTwo;
     float3 pos;
     float3 u, v, w;
 };

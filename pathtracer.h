@@ -5,6 +5,6 @@
 #ifndef SUNPATHTRACER_PATHTRACER_H
 #define SUNPATHTRACER_PATHTRACER_H
 
-extern "C" void test(uchar4* img);
+extern "C" void test(uchar4* img, cudaScene& scene);
 
 #endif //SUNPATHTRACER_PATHTRACER_H

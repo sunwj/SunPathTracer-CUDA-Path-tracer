@@ -21,39 +21,52 @@ __host__ __device__ unsigned int wangHash(unsigned int a)
     return a;
 }
 
-__global__ void testSimpleScene(uchar4* img)
+__global__ void testSimpleScene(uchar4* img, cudaScene scene)
 {
     unsigned int idx = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned int idy = blockDim.y * blockIdx.y + threadIdx.y;
-    unsigned int offset = idy * 640 + idx;
+    unsigned int offset = idy * scene.camera.imageW + idx;
     img[offset] = IMG_BLACK;
 
-    //curandState rng;
-    //curand_init(0, 0, 0, &rng);
-    //cudaRay pRay;
-    //scene.camera.GenerateRay(idx, idy, rng, &pRay);
-//
-    //float t = FLT_MAX;
-    //for(auto i = 0; i < scene.num_aabb_boxes; ++i)
-    //{
-    //    const cudaAABB& box = scene.aabb_boxes[i];
-    //    float ttmp;
-    //    if(box.Intersect(pRay, &ttmp) && (ttmp < t))
-    //    {
-    //        t = ttmp;
-    //        float3 n = box.GetNormal(pRay.PointOnRay(t));
-    //        float costerm = fmaxf(0.f, dot(n, make_float3(0.f, 1.f, 0.f)));
-    //        float3 c = scene.materials[box.material_id].reflectance * costerm;
-    //        img[offset] = make_uchar4(c.x * 255, c.y * 255, c.z * 255, 0);
-    //    }
-    //}
+    curandState rng;
+    curand_init(0, 0, 0, &rng);
+    cudaRay pRay;
+    scene.camera.GenerateRay(idx, idy, rng, &pRay);
+
+    float t = FLT_MAX;
+    float3 n = make_float3(0.f);
+    for(auto i = 0; i < scene.num_aabb_boxes; ++i)
+    {
+        const cudaAABB& box = scene.aabb_boxes[i];
+        float ttmp;
+        if(box.Intersect(pRay, &ttmp) && (ttmp < t))
+        {
+            t = ttmp;
+            n = box.GetNormal(pRay.PointOnRay(t));
+            float3 c = scene.materials[box.material_id].reflectance * 1.f;
+        }
+    }
+
+    for(auto i = 0; i < scene.num_spheres; ++i)
+    {
+        const cudaSphere& sphere = scene.spheres[i];
+        float ttmp;
+        if(sphere.Intersect(pRay, &ttmp) && (ttmp < t))
+        {
+            t = ttmp;
+            n = sphere.GetNormal(pRay.PointOnRay(t));
+        }
+    }
+
+    float costerm = fmaxf(0.f, dot(n, normalize(make_float3(-1.f, 0.5f, 3.f))));
+    img[offset] = make_uchar4(fabsf(n.x) * 255 * costerm, fabsf(n.y) * 255 * costerm, fabsf(n.z) * 255 * costerm, 0);
 }
 
-extern "C" void test(uchar4* img)
+extern "C" void test(uchar4* img, cudaScene& scene)
 {
     dim3 blockSize(16, 16);
     dim3 gridSize(640 / blockSize.x, 480 / blockSize.y);
 
-    testSimpleScene<<<gridSize, blockSize>>>(img);
+    testSimpleScene<<<gridSize, blockSize>>>(img, scene);
     checkCudaErrors(cudaDeviceSynchronize());
 }

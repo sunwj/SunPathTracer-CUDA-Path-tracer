@@ -41,6 +41,9 @@ void init()
 
     Scene host_scene;
     //build scene
+    //camera
+    host_scene.AddCamera(cudaCamera(make_float3(-1.f, 0.5f, 3.f), make_float3(-0.1, -0.05, 0), make_float3(0.f, 1.f, 0.f)));
+    //material
     host_scene.AddMaterial(cudaMaterial());
     //table top
     host_scene.AddAABB(cudaAABB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
@@ -76,7 +79,7 @@ void display()
     checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&img, &size, resource));
 
     //todo: add rendering function call
-    test(img);
+    test(img, device_scene);
 
     checkCudaErrors(cudaGraphicsUnmapResources(1, &resource));
 
