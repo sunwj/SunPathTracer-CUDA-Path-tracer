@@ -14,8 +14,19 @@
 class cudaCamera
 {
 public:
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx = M_PI / 4, unsigned int _imageW = 640,
-                                   unsigned int _imageH = 480)
+    __host__ __device__ cudaCamera() {}
+
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx = M_PI / 4, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    {
+        Setup(_pos, _u, _v, _w, fovx, _imageW, _imageH);
+    }
+
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx = M_PI / 4, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    {
+        Setup(_pos, target, up, fovx, _imageW, _imageH);
+    }
+
+    __host__ __device__ void Setup(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx, unsigned int _imageW, unsigned int _imageH)
     {
         pos = _pos;
         u = _u;
@@ -28,7 +39,7 @@ public:
         tanFovyOverTwo = tanf((fovx / aspectRatio) * 0.5f * M_PI / 180.f);
     }
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx = M_PI / 4, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    __host__ __device__ void Setup(const float3& _pos, const float3& target, const float3& up, float fovx, unsigned int _imageW, unsigned int _imageH)
     {
         pos = _pos;
         w = normalize(pos - target);
@@ -40,19 +51,6 @@ public:
         tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
         tanFovyOverTwo = tanf((fovx / aspectRatio) * 0.5f * M_PI / 180.f);
     }
-
-    //__host__ __device__ cudaCamera(const float3& _pos, const float3& viewDir, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
-    //{
-    //    pos = _pos;
-    //    w = -viewDir;
-    //    u = cross(up, w);
-    //    v = cross(w, u);
-    //    imageW = _imageW;
-    //    imageH = _imageH;
-    //    aspectRatio = (float)imageW / (float)imageH;
-    //    tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
-    //    tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
-    //}
 
     // TODO: depth of field
     // TODO: jittered sampling
