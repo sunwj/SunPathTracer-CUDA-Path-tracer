@@ -14,8 +14,8 @@
 class cudaCamera
 {
 public:
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx, float fovy, unsigned int _imageW,
-                                   unsigned int _imageH)
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx = M_PI / 4, unsigned int _imageW = 640,
+                                   unsigned int _imageH = 480)
     {
         pos = _pos;
         u = _u;
@@ -25,10 +25,10 @@ public:
         imageH = _imageH;
         aspectRatio = (float)imageW / (float)imageH;
         tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
-        tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
+        tanFovyOverTwo = tanf((fovx / aspectRatio) * 0.5f * M_PI / 180.f);
     }
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
+    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx = M_PI / 4, unsigned int _imageW = 640, unsigned int _imageH = 480)
     {
         pos = _pos;
         w = normalize(pos - target);
@@ -38,7 +38,7 @@ public:
         imageH = _imageH;
         aspectRatio = (float)imageW / (float)imageH;
         tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
-        tanFovyOverTwo = tanf(fovy * 0.5f * M_PI / 180.f);
+        tanFovyOverTwo = tanf((fovx / aspectRatio) * 0.5f * M_PI / 180.f);
     }
 
     //__host__ __device__ cudaCamera(const float3& _pos, const float3& viewDir, const float3& up, float fovx, float fovy, unsigned int _imageW, unsigned int _imageH)
