@@ -42,7 +42,7 @@ void init()
     Scene host_scene;
     //build scene
     //camera
-    host_scene.AddCamera(cudaCamera(make_float3(-1.f, 0.5f, 3.f), make_float3(-0.1, -0.05, 0), make_float3(0.f, 1.f, 0.f)));
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 2.5f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f)));
     //material
     host_scene.AddMaterial(cudaMaterial());
     //table top
@@ -64,7 +64,30 @@ void init()
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, -0.09), make_float3(0.7, 0.1, -0.03), host_scene.GetLastMaterialID()));
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, 0.03), make_float3(0.7, 0.1, 0.09), host_scene.GetLastMaterialID()));
     //sphere on the table
-    host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.05, 0), 0.25, host_scene.GetLastMaterialID()));
+    host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.05, 0), 0.2, host_scene.GetLastMaterialID()));
+    //walls
+    //back
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -1.f), normalize(make_float3(0.f, 0.f, 1.f)), host_scene.GetLastMaterialID()));
+    //front
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 1.f), normalize(make_float3(0.f, 0.f, -1.f)), host_scene.GetLastMaterialID()));
+    //bottom
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, -1.f, 0.f), normalize(make_float3(0.f, 1.f, 0.f)), host_scene.GetLastMaterialID()));
+    //top
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.8f, 0.f), normalize(make_float3(0.f, -1.f, 0.f)), host_scene.GetLastMaterialID()));
+    //left
+    cudaMaterial mat;
+    mat.reflectance = make_float3(0.1f, 0.5f, 1.f);
+    host_scene.AddMaterial(mat);
+    host_scene.AddPlane(cudaPlane(make_float3(-1.f, 0.f, 0.f), normalize(make_float3(1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
+    //right
+    mat.reflectance = make_float3(1.0f, 0.9f, 0.1f);
+    host_scene.AddMaterial(mat);
+    host_scene.AddPlane(cudaPlane(make_float3(1.f, 0.f, 0.f), normalize(make_float3(-1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
+    //light
+    mat.reflectance = make_float3(1.f, 1.f, 1.f);
+    mat.emittance = make_float3(1.f, 1.f, 1.f);
+    host_scene.AddMaterial(mat);
+    host_scene.AddAABB(cudaAABB(make_float3(-0.4, 0.75, -0.25), make_float3(0.3, 0.8, 0.25), host_scene.GetLastMaterialID()));
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);

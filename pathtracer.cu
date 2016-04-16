@@ -35,6 +35,7 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene)
 
     float t = FLT_MAX;
     float3 n = make_float3(0.f);
+    unsigned int matID;
     for(auto i = 0; i < scene.num_aabb_boxes; ++i)
     {
         const cudaAABB& box = scene.aabb_boxes[i];
@@ -43,7 +44,7 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene)
         {
             t = ttmp;
             n = box.GetNormal(pRay.PointOnRay(t));
-            float3 c = scene.materials[box.material_id].reflectance * 1.f;
+            matID = box.material_id;
         }
     }
 
@@ -55,11 +56,26 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene)
         {
             t = ttmp;
             n = sphere.GetNormal(pRay.PointOnRay(t));
+            matID = sphere.material_id;
         }
     }
 
-    float costerm = fmaxf(0.f, dot(n, normalize(make_float3(-1.f, 0.5f, 3.f))));
-    img[offset] = make_uchar4(fabsf(n.x) * 255 * costerm, fabsf(n.y) * 255 * costerm, fabsf(n.z) * 255 * costerm, 0);
+    for(auto i = 0; i < scene.num_planes; ++i)
+    {
+        const cudaPlane& plane = scene.planes[i];
+        float ttmp;
+        if(plane.Intersect(pRay, &ttmp) && (ttmp < t))
+        {
+            t = ttmp;
+            n = plane.GetNormal(make_float3(0.f, 0.f, 0.f));
+            matID = plane.material_id;
+        }
+    }
+
+    //float costerm = fmaxf(0.f, dot(n, normalize(make_float3(-1.f, 0.5f, 3.f))));
+    float costerm = 1.f;
+    float3 ref = scene.materials[matID].reflectance;
+    img[offset] = make_uchar4(fabsf(ref.x) * 255 * costerm, fabsf(ref.y) * 255 * costerm, fabsf(ref.z) * 255 * costerm, 0);
 }
 
 extern "C" void test(uchar4* img, cudaScene& scene)
