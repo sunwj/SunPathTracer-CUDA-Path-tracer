@@ -39,6 +39,11 @@ public:
         this->aabb_boxes.push_back(aabb);
     }
 
+    void AddPlane(const cudaPlane& plane)
+    {
+        this->planes.push_back(plane);
+    }
+
     unsigned int GetLastMaterialID(void) {return this->materials.size() - 1;}
 
     //todo: add build scene
@@ -54,6 +59,7 @@ public:
     //geometries
     std::vector<cudaSphere> spheres;
     std::vector<cudaAABB> aabb_boxes;
+    std::vector<cudaPlane> planes;
 };
 
 
