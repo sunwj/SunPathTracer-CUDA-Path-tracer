@@ -20,6 +20,7 @@ public:
 
         spheres = NULL;
         aabb_boxes = NULL;
+        planes = NULL;
     }
 
     ~cudaScene()
@@ -51,6 +52,9 @@ public:
 
     unsigned int num_aabb_boxes;
     cudaAABB* aabb_boxes;
+
+    unsigned int num_planes;
+    cudaPlane* planes;
 };
 
 #endif //SUNPATHTRACER_CUDA_SCENE_H

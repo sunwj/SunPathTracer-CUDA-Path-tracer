@@ -125,5 +125,39 @@ public:
 };
 
 //todo: add plane
+class cudaPlane
+{
+public:
+    __host__ __device__ cudaPlane(const float3& _p, const float3& _normal, unsigned int _material_id)
+    {
+        p = _p;
+        normal = _normal;
+
+        material_id = _material_id;
+    }
+
+    __device__ bool Intersect(const cudaRay& ray, float* t) const
+    {
+        // t = ((p - ray.orig) . normal) / (ray.dir . normal)
+        float denom = -dot(ray.dir, normal);
+        if(denom > 1e-6)
+        {
+            constexpr float eps = 0.001f;
+            *t = -dot(p - ray.orig, normal) / denom;
+            return (*t > eps);
+        }
+
+        return false;
+    }
+
+    __device__ float3 GetNormal(const float3& pt) const
+    {
+        return normal;
+    }
+public:
+    float3 p;
+    float3 normal;
+    unsigned int material_id;
+};
 
 #endif //SUNPATHTRACER_SHAPE_H
