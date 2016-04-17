@@ -12,7 +12,7 @@
 #include "cuda_onb.h"
 
 // return r and theta in polar coordinate
-__inline__ float2 uniform_sample_unit_disk(curandState& rng)
+__inline__ __device__ float2 uniform_sample_unit_disk(curandState& rng)
 {
     float r = sqrtf(curand_uniform(&rng));
     float theta = curand_uniform(&rng) * 2.f * M_PI;
@@ -21,15 +21,15 @@ __inline__ float2 uniform_sample_unit_disk(curandState& rng)
 }
 
 // return x and y in cartesian coordinate
-__inline__ float2 uniform_sample_disk(curandState& rng, float r)
-{
-    float2 p = uniform_sample_unit_disk(&rng);
-
-    return make_float2(cosf(p.x), sinf(p.y)) * r;
-}
+//__inline__ __device__ float2 uniform_sample_disk(curandState& rng, float r)
+//{
+//    float2 p = uniform_sample_unit_disk(&rng);
+//
+//    return make_float2(cosf(p.x), sinf(p.y)) * r;
+//}
 
 // return direction in cartesian space
-__inline__ float3 uniform_sample_hemisphere(curandState& rng, const float3& n)
+__inline__ __device__ float3 uniform_sample_hemisphere(curandState& rng, const float3& n)
 {
     cudaONB onb(n);
     float phi = 2.f * M_PI * curand_uniform(&rng);
@@ -40,7 +40,7 @@ __inline__ float3 uniform_sample_hemisphere(curandState& rng, const float3& n)
 }
 
 // return direction in cartesian space
-__inline__ float3 cosine_weightd_sample_hemisphere(curandState& rng, const float3& n)
+__inline__ __device__ float3 cosine_weightd_sample_hemisphere(curandState& rng, const float3& n)
 {
     cudaONB onb(n);
     float phi = 2.f * M_PI * curand_uniform(&rng);
