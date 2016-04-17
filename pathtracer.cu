@@ -105,30 +105,15 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, float3* mc_buffer,
             break;
         }
 
-        pRay.orig = pRay.PointOnRay(hit.t) + hit.normal * 0.001f;
-        //pRay.dir = uniform_sample_hemisphere(rng, hit.normal);
-        //pRay.dir = cosine_weightd_sample_hemisphere(rng, hit.normal);
-
-        float r1 = curand_uniform(&rng) * 2.f * M_PI;
-        float r2 = curand_uniform(&rng);
-        float r2s = sqrtf(r2);
-
-        float3 w = hit.normal;
-        float3 u = normalize(cross((fabs(w.x) > .1f ? make_float3(0.f, 1.f, 0.f) : make_float3(1.f, 0.f, 0.f)) ,w));
-        float3 v = cross(w, u);
-        pRay.dir = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrtf(1.f - r2));
+        pRay.orig = pRay.PointOnRay(hit.t);
+        pRay.dir = cosine_weightd_sample_hemisphere(rng, hit.normal);
 
         L += scene.materials[hit.matID].emition * T;
-        T *= scene.materials[hit.matID].albedo * fmaxf(0.f, dot(pRay.dir, hit.normal));
-        T *= 2.f;
-
-        if(scene.materials[hit.matID].emition.x != 0.f)
-            break;
+        T *= scene.materials[hit.matID].albedo;
     }
 
     running_estimate(mc_buffer[offset], L, N);
-    L = mc_buffer[offset];
-    reinhard_tone_mapping(L, 3.f);
+    L = reinhard_tone_mapping(mc_buffer[offset], 1.f);
     img[offset] = make_uchar4(fabsf(L.x) * 255, fabsf(L.y) * 255, fabsf(L.z) * 255, 0);
 }
 
