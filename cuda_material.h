@@ -13,14 +13,14 @@ class cudaMaterial
 public:
     cudaMaterial()
     {
-        reflectance = make_float3(0.8f);
-        emittance = make_float3(0.f);
+        albedo = make_float3(0.8f);
+        emition = make_float3(0.f);
         ior = 1.f;
     }
 
 public:
-    float3 reflectance;
-    float3 emittance;
+    float3 albedo;
+    float3 emition;
     float ior;
 };
 
