@@ -22,6 +22,7 @@ GLuint pbo;
 
 cudaGraphicsResource_t resource;
 float3* mc_buffer;
+unsigned int N = 0;
 
 cudaScene device_scene;
 
@@ -42,9 +43,11 @@ void init()
     Scene host_scene;
     //build scene
     //camera
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 2.5f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f)));
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 3.0f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f), 35.f));
     //material
-    host_scene.AddMaterial(cudaMaterial());
+    cudaMaterial mat;
+    mat.albedo = make_float3(0.7f, 0.7f, 0.7f);
+    host_scene.AddMaterial(mat);
     //table top
     host_scene.AddAABB(cudaAABB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
     //table legs
@@ -64,30 +67,33 @@ void init()
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, -0.09), make_float3(0.7, 0.1, -0.03), host_scene.GetLastMaterialID()));
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, 0.03), make_float3(0.7, 0.1, 0.09), host_scene.GetLastMaterialID()));
     //sphere on the table
-    host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.05, 0), 0.2, host_scene.GetLastMaterialID()));
+    mat.albedo = make_float3(0.8f, 0.8f, 0.8f);
+    host_scene.AddMaterial(mat);
+    host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.099, 0), 0.2, host_scene.GetLastMaterialID()));
     //walls
+    mat.albedo = make_float3(0.8f, 0.8f, 0.8f);
+    host_scene.AddMaterial(mat);
     //back
-    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -1.f), normalize(make_float3(0.f, 0.f, 1.f)), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -0.8f), normalize(make_float3(0.f, 0.f, 1.f)), host_scene.GetLastMaterialID()));
     //front
-    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 1.f), normalize(make_float3(0.f, 0.f, -1.f)), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 1.2f), normalize(make_float3(0.f, 0.f, -1.f)), host_scene.GetLastMaterialID()));
     //bottom
     host_scene.AddPlane(cudaPlane(make_float3(0.f, -1.f, 0.f), normalize(make_float3(0.f, 1.f, 0.f)), host_scene.GetLastMaterialID()));
     //top
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.8f, 0.f), normalize(make_float3(0.f, -1.f, 0.f)), host_scene.GetLastMaterialID()));
     //left
-    cudaMaterial mat;
-    mat.reflectance = make_float3(0.1f, 0.5f, 1.f);
+    mat.albedo = make_float3(0.1f, 0.5f, 1.f);
     host_scene.AddMaterial(mat);
-    host_scene.AddPlane(cudaPlane(make_float3(-1.f, 0.f, 0.f), normalize(make_float3(1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(-0.8f, 0.f, 0.f), normalize(make_float3(1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
     //right
-    mat.reflectance = make_float3(1.0f, 0.9f, 0.1f);
+    mat.albedo = make_float3(1.0f, 0.9f, 0.1f);
     host_scene.AddMaterial(mat);
-    host_scene.AddPlane(cudaPlane(make_float3(1.f, 0.f, 0.f), normalize(make_float3(-1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(0.8f, 0.f, 0.f), normalize(make_float3(-1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
     //light
-    mat.reflectance = make_float3(1.f, 1.f, 1.f);
-    mat.emittance = make_float3(1.f, 1.f, 1.f);
+    mat.albedo = make_float3(1.f, 1.f, 1.f);
+    mat.emition = make_float3(2.f, 2.f, 2.f);
     host_scene.AddMaterial(mat);
-    host_scene.AddAABB(cudaAABB(make_float3(-0.4, 0.75, -0.25), make_float3(0.3, 0.8, 0.25), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAABB(make_float3(-0.4, 0.78, -0.25), make_float3(0.3, 0.8, 0.25), host_scene.GetLastMaterialID()));
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);
@@ -102,13 +108,14 @@ void display()
     checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&img, &size, resource));
 
     //todo: add rendering function call
-    test(img, device_scene);
+    test(img, device_scene, mc_buffer, N);
 
     checkCudaErrors(cudaGraphicsUnmapResources(1, &resource));
 
     glDrawPixels(WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     
     glutSwapBuffers();
+    N++;
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -123,6 +130,13 @@ void keyboard(unsigned char key, int x, int y)
     }
 }
 
+void idle()
+{
+    glutPostRedisplay();
+    if(N % 100 == 0)
+        std::cout<<"iterations: "<<N<<std::endl;
+}
+
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
@@ -133,6 +147,7 @@ int main(int argc, char** argv)
 
     glutKeyboardFunc(keyboard);
     glutDisplayFunc(display);
+    glutIdleFunc(idle);
 
     glutMainLoop();
 
