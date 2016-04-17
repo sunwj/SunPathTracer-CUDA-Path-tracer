@@ -124,7 +124,6 @@ public:
     
 };
 
-//todo: add plane
 class cudaPlane
 {
 public:
