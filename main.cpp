@@ -1,8 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
+#include <GLFW/glfw3.h>
 
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
@@ -93,13 +92,13 @@ void init()
     mat.albedo = make_float3(1.f, 1.f, 1.f);
     mat.emition = make_float3(2.f, 2.f, 2.f);
     host_scene.AddMaterial(mat);
-    host_scene.AddAABB(cudaAABB(make_float3(-0.4, 0.78, -0.25), make_float3(0.3, 0.8, 0.25), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAABB(make_float3(-0.38, 0.78, -0.25), make_float3(0.32, 0.8, 0.25), host_scene.GetLastMaterialID()));
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);
 }
 
-void display()
+void render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     uchar4* img;
@@ -108,48 +107,40 @@ void display()
     checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&img, &size, resource));
 
     //todo: add rendering function call
-    test(img, device_scene, mc_buffer, N);
+    for(auto i = 0; i < 5; ++i)
+    {
+        test(img, device_scene, mc_buffer, N);
+        N++;
+    }
 
     checkCudaErrors(cudaGraphicsUnmapResources(1, &resource));
 
     glDrawPixels(WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    
-    glutSwapBuffers();
-    N++;
-}
-
-void keyboard(unsigned char key, int x, int y)
-{
-    switch(key)
-    {
-        case 27:
-            exit(0);
-            break;
-        default:
-            break;
-    }
-}
-
-void idle()
-{
-    glutPostRedisplay();
-    if(N % 100 == 0)
-        std::cout<<"iterations: "<<N<<std::endl;
 }
 
 int main(int argc, char** argv)
 {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowSize(WIDTH, HEIGHT);
-    glutCreateWindow("SunPathTracer");
+    GLFWwindow* window;
+    if(!glfwInit())
+        return -1;
+
+    window = glfwCreateWindow(WIDTH, HEIGHT, "SunPathTracer", NULL, NULL);
+    if(!window)
+    {
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
     init();
 
-    glutKeyboardFunc(keyboard);
-    glutDisplayFunc(display);
-    glutIdleFunc(idle);
+    while(!glfwWindowShouldClose(window))
+    {
+        render();
+        glfwSwapBuffers(window);
 
-    glutMainLoop();
+        glfwPollEvents();
+    }
 
     return 0;
 }
