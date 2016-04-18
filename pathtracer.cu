@@ -8,6 +8,7 @@
 #include "cuda_scene.h"
 #include "tonemapping.h"
 #include "sampling.h"
+#include "render_parameters.h"
 
 auto constexpr WIDTH = 640;
 auto constexpr HEIGHT = 480;
@@ -31,8 +32,6 @@ __inline__ __device__ void running_estimate(float3& acc_buffer, const float3& cu
     acc_buffer += (curr_est - acc_buffer) / (N + 1.f);
 }
 
-enum {GEO_SPHERE, GEO_AABB, GEO_PLANE};
-
 struct HitInfo
 {
     bool intersected = false;
@@ -41,7 +40,7 @@ struct HitInfo
     unsigned int matID;
 };
 
-__global__ void testSimpleScene(uchar4* img, cudaScene scene, float3* mc_buffer, unsigned int N, unsigned int hashed_N)
+__global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters params, unsigned int hashed_N)
 {
     unsigned int idx = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned int idy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -112,21 +111,21 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, float3* mc_buffer,
         T *= scene.materials[hit.matID].albedo;
     }
 
-    running_estimate(mc_buffer[offset], L, N);
-    L = reinhard_tone_mapping(mc_buffer[offset], 1.f);
+    running_estimate(params.hdr_buffer[offset], L, params.iteration_count);
+    L = reinhard_tone_mapping(params.hdr_buffer[offset], 0.6f);
     img[offset] = make_uchar4(fabsf(L.x) * 255, fabsf(L.y) * 255, fabsf(L.z) * 255, 0);
 }
 
-extern "C" void test(uchar4* img, cudaScene& scene, float3* mc_buffer, unsigned int N)
+extern "C" void test(uchar4* img, cudaScene& scene, RenderParameters& params)
 {
     dim3 blockSize(16, 16);
     dim3 gridSize(640 / blockSize.x, 480 / blockSize.y);
 
-    if(N == 0)
+    if(params.iteration_count == 0)
     {
-        checkCudaErrors(cudaMemset(mc_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
+        checkCudaErrors(cudaMemset(params.hdr_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
     }
 
-    testSimpleScene<<<gridSize, blockSize>>>(img, scene, mc_buffer, N, wangHash(N));
+    testSimpleScene<<<gridSize, blockSize>>>(img, scene, params, wangHash(params.iteration_count));
     checkCudaErrors(cudaDeviceSynchronize());
 }

@@ -20,8 +20,8 @@ auto constexpr HEIGHT = 480;
 GLuint pbo;
 
 cudaGraphicsResource_t resource;
-float3* mc_buffer;
-unsigned int N = 0;
+
+RenderParameters renderParams;
 
 cudaScene device_scene;
 
@@ -36,8 +36,8 @@ void init()
     checkCudaErrors(cudaSetDevice(0));
     checkCudaErrors(cudaGraphicsGLRegisterBuffer(&resource, pbo, cudaGraphicsRegisterFlagsNone));
 
-    checkCudaErrors(cudaMalloc((void**)&mc_buffer, sizeof(float3) * WIDTH * HEIGHT));
-    checkCudaErrors(cudaMemset((void*)mc_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
+    checkCudaErrors(cudaMalloc((void**)&(renderParams.hdr_buffer), sizeof(float3) * WIDTH * HEIGHT));
+    checkCudaErrors(cudaMemset((void*)renderParams.hdr_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
 
     Scene host_scene;
     //build scene
@@ -109,8 +109,8 @@ void render()
     //todo: add rendering function call
     for(auto i = 0; i < 5; ++i)
     {
-        test(img, device_scene, mc_buffer, N);
-        N++;
+        test(img, device_scene, renderParams);
+        renderParams.iteration_count++;
     }
 
     checkCudaErrors(cudaGraphicsUnmapResources(1, &resource));

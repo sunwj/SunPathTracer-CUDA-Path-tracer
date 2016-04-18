@@ -5,6 +5,8 @@
 #ifndef SUNPATHTRACER_PATHTRACER_H
 #define SUNPATHTRACER_PATHTRACER_H
 
-extern "C" void test(uchar4* img, cudaScene& scene, float3* mc_buffer, unsigned int N);
+#include "render_parameters.h"
+
+extern "C" void test(uchar4* img, cudaScene& scene, RenderParameters& params);
 
 #endif //SUNPATHTRACER_PATHTRACER_H
