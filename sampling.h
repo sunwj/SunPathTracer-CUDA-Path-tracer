@@ -21,12 +21,10 @@ __inline__ __device__ float2 uniform_sample_unit_disk(curandState& rng)
 }
 
 // return x and y in cartesian coordinate
-//__inline__ __device__ float2 uniform_sample_disk(curandState& rng, float r)
-//{
-//    float2 p = uniform_sample_unit_disk(&rng);
-//
-//    return make_float2(cosf(p.x), sinf(p.y)) * r;
-//}
+__inline__ __device__ float2 uniform_sample_disk(curandState& rng, float r)
+{
+    return make_float2(cosf(2.f * M_PI * curand_uniform(&rng)), sinf(sqrtf(curand_uniform(&rng)))) * r;
+}
 
 // return direction in cartesian space
 __inline__ __device__ float3 uniform_sample_hemisphere(curandState& rng, const float3& n)
