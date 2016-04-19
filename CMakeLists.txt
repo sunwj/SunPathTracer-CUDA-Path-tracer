@@ -7,7 +7,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # CUDA settings
 find_package(CUDA QUIET REQUIRED)
-list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -use_fast_math -Xptxas -v)
+list(APPEND CUDA_NVCC_FLAGS --maxrregcount=32 --compiler-options -fno-strict-aliasing -use_fast_math -Xptxas -v)
 list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
 set(CUDA_INCLUDE_DIRS /usr/local/cuda/include/)
 include_directories(${CUDA_INCLUDE_DIRS})
