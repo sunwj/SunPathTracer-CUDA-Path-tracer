@@ -118,6 +118,12 @@ void render()
     glDrawPixels(WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
 int main(int argc, char** argv)
 {
     GLFWwindow* window;
@@ -132,6 +138,7 @@ int main(int argc, char** argv)
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetKeyCallback(window, key_callback);
     init();
 
     while(!glfwWindowShouldClose(window))
@@ -141,6 +148,8 @@ int main(int argc, char** argv)
 
         glfwPollEvents();
     }
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }
