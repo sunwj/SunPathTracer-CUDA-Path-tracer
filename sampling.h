@@ -33,7 +33,7 @@ __inline__ __device__ float3 uniform_sample_hemisphere(curandState& rng, const f
     float phi = 2.f * M_PI * curand_uniform(&rng);
 
     float cosTheta = curand_uniform(&rng);
-    float sinTheta = fmaxf(0.f, sqrtf(1.f - cosTheta * cosTheta));
+    float sinTheta = sqrtf(fmaxf(0.f, 1.f - cosTheta * cosTheta));
 
     return sinTheta * cosf(phi) * onb.u + sinTheta * sinf(phi) * onb.v + cosTheta * onb.w;
 }
@@ -45,7 +45,7 @@ __inline__ __device__ float3 cosine_weightd_sample_hemisphere(curandState& rng, 
     float phi = 2.f * M_PI * curand_uniform(&rng);
 
     float sinTheta = sqrtf(curand_uniform(&rng));
-    float cosTheta = fmaxf(0.f, sqrtf(1.f - sinTheta * sinTheta));
+    float cosTheta = sqrtf(fmaxf(0.f, 1.f - sinTheta * sinTheta));
 
     return sinTheta * cosf(phi) * onb.u + sinTheta * sinf(phi) * onb.v + cosTheta * onb.w;
 }
