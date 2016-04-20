@@ -16,8 +16,8 @@
 class Scene
 {
 public:
-    Scene();
-    ~Scene();
+    Scene() {};
+    ~Scene() {};
 
     void AddCamera(const cudaCamera& camera)
     {
@@ -45,9 +45,6 @@ public:
     }
 
     unsigned int GetLastMaterialID(void) {return this->materials.size() - 1;}
-
-    //todo: add build scene
-    void BuildSceneForGPU(cudaScene& scene);
 
 public:
     //camera
