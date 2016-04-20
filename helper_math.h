@@ -1423,6 +1423,18 @@ inline __host__ __device__ float3 cross(float3 a, float3 b)
     return make_float3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
 }
 
+//todo: test it
+inline __host__ __device__ bool refract(float n1, float n2, float3 wi, float3 n, float3& wt)
+{
+    float eta = n1 / n2;
+    float cosin = -dot(wi, n);
+    float cost2 = 1.f - eta * eta * (1.f - cosin * cosin);
+    if(cost2 < 0.f) return false;
+
+    wt = eta * wi + (eta * cosin - sqrtf(cost2)) * n;
+    return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // smoothstep
 // - returns 0 if x < a
