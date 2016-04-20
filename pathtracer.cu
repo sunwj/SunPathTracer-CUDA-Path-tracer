@@ -59,7 +59,6 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
     {
         HitInfo hit;
         //find nearest intersection
-#ifdef __GEO__AABB__
         for(auto i = 0; i < scene.num_aabb_boxes; ++i)
         {
             const cudaAABB& box = scene.aabb_boxes[i];
@@ -72,9 +71,7 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
                 hit.matID = box.material_id;
             }
         }
-#endif
 
-#ifdef __GEO_SPHERE__
         for(auto i = 0; i < scene.num_spheres; ++i)
         {
             const cudaSphere& sphere = scene.spheres[i];
@@ -87,9 +84,7 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
                 hit.matID = sphere.material_id;
             }
         }
-#endif
 
-#ifdef __GEO_PLANE__
         for(auto i = 0; i < scene.num_planes; ++i)
         {
             const cudaPlane& plane = scene.planes[i];
@@ -102,7 +97,6 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
                 hit.matID = plane.material_id;
             }
         }
-#endif
 
         if(!hit.intersected)
         {
