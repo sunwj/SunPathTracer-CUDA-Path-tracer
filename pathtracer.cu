@@ -28,9 +28,9 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
     float3 L = make_float3(0.f, 0.f, 0.f);
     float3 T = make_float3(1.f, 1.f, 1.f);
 
+    HitInfo hi;
     for(auto k = 0; k < 5; ++k)
     {
-        HitInfo hi;
         if(!scene_intersect(scene, ray, hi)) break;
         L += T * scene.materials[hi.matID].emition;
 
@@ -44,10 +44,14 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
 
         if(scene.materials[hi.matID].bsdf_type == BSDF_GLASS)
         {
-            ray.orig = hi.pt;
-            bool into = dot(ray.dir, hi.normal) < 0.f;
-            float eta = into ? 1.f / scene.materials[hi.matID].ior : scene.materials[hi.matID].ior;
-            float cosin = into ? -dot(hi.normal, ray.dir) : dot(hi.normal, ray.dir);
+            float eta = scene.materials[hi.matID].ior;
+            if(dot(hi.normal, ray.dir) > 0.f)
+            {
+                eta = 1.f / eta;
+                hi.normal = -hi.normal;
+            }
+            eta = 1.f / eta;
+            float cosin = -dot(hi.normal, ray.dir);
             float cost2 = 1.f - eta * eta * (1.f - cosin * cosin);
 
             if(cost2 < 0.f)
@@ -55,6 +59,34 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
                 T *= scene.materials[hi.matID].albedo;
                 ray.dir = reflect(ray.dir, hi.normal);
             }
+            else
+            {
+                float3 tdir = eta * ray.dir + hi.normal * (eta * cosin - sqrtf(cost2));
+                tdir = normalize(tdir);
+
+                float n1 = (cosin < 0.f) ? 1.f : scene.materials[hi.matID].ior;
+                float n2 = (cosin < 0.f) ? scene.materials[hi.matID].ior : 1.f;
+                float R0 = (n1 - n2) * (n1 - n2) / ((n1 + n2) * (n1 + n2));
+                float c = cosin;
+                float Pr = R0 + (1.f - R0) * c * c * c * c * c;
+                float Pt = 1.f - Pr;
+                float P = 0.25f + 0.5f * Pr;
+
+                if(curand_uniform(&rng) < P)
+                {
+                    T *= scene.materials[hi.matID].albedo;
+                    T *= (Pr / P);
+                    ray.dir = reflect(ray.dir, hi.normal);
+                }
+                else
+                {
+                    T *= scene.materials[hi.matID].albedo;
+                    T *= (Pt / (1.f - P));
+                    ray.dir = tdir;
+                }
+            }
+
+            ray.orig = hi.pt;
         }
     }
 

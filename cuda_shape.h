@@ -37,7 +37,7 @@ public:
         {
             discr = sqrtf(discr);
 
-            constexpr float eps = 0.001f;
+            constexpr float eps = 0.0001f;
             if((*t = (-b - discr) /*/ (2.f * a)*/ * 0.5f) > eps)
                 return true;
             else if((*t = (-b + discr) /*/ (2.f * a)*/ * 0.5f) > eps)
@@ -84,7 +84,7 @@ public:
 
         if(minmax >= maxmin)
         {
-            constexpr float eps = 0.001f;
+            constexpr float eps = 0.0001f;
             if(maxmin > eps)
             {
                 *t = maxmin;
@@ -98,7 +98,7 @@ public:
     __device__ float3 GetNormal(const float3& pt) const
     {
         float3 normal;
-        constexpr float eps = 0.001f;
+        constexpr float eps = 0.0001f;
 
         if(fabsf(bMin.x - pt.x) < eps) normal = make_float3(-1.f, 0.f, 0.f);
         else if(fabsf(bMax.x - pt.x) < eps) normal = make_float3(1.f, 0.f, 0.f);
@@ -141,7 +141,7 @@ public:
         float denom = -dot(ray.dir, normal);
         if(denom > 1e-6)
         {
-            constexpr float eps = 0.001f;
+            constexpr float eps = 0.0001f;
             *t = -dot(p - ray.orig, normal) / denom;
             return (*t > eps);
         }
