@@ -66,11 +66,15 @@ void init()
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, -0.09), make_float3(0.7, 0.1, -0.03), host_scene.GetLastMaterialID()));
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, 0.03), make_float3(0.7, 0.1, 0.09), host_scene.GetLastMaterialID()));
     //sphere on the table
-    mat.albedo = make_float3(0.8f, 0.8f, 0.8f);
+    mat.albedo = make_float3(0.3f, 0.8f, 0.2f);
+    mat.bsdf_type = BSDF_GLASS;
+    mat.ior = 1.45f;
     host_scene.AddMaterial(mat);
     host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.099, 0), 0.2, host_scene.GetLastMaterialID()));
     //walls
     mat.albedo = make_float3(0.8f, 0.8f, 0.8f);
+    mat.bsdf_type = BSDF_DIFFUSE;
+    mat.ior = 1.f;
     host_scene.AddMaterial(mat);
     //back
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -0.8f), normalize(make_float3(0.f, 0.f, 1.f)), host_scene.GetLastMaterialID()));
@@ -147,6 +151,9 @@ int main(int argc, char** argv)
         glfwSwapBuffers(window);
 
         glfwPollEvents();
+
+        if(renderParams.iteration_count % 100 == 0)
+            std::cout<<"iterations: "<<renderParams.iteration_count<<std::endl;
     }
     glfwDestroyWindow(window);
     glfwTerminate();
