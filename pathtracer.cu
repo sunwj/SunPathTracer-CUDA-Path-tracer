@@ -3,42 +3,15 @@
 
 #include "helper_math.h"
 #include "cuda_shape.h"
-#include "cuda_ray.h"
 #include "cuda_camera.h"
 #include "cuda_scene.h"
 #include "tonemapping.h"
 #include "sampling.h"
 #include "render_parameters.h"
+#include "kernel_globals.h"
 
 auto constexpr WIDTH = 640;
 auto constexpr HEIGHT = 480;
-
-#define IMG_BLACK make_uchar4(0, 0, 0, 0)
-
-unsigned int wangHash(unsigned int a)
-{
-    //http://raytracey.blogspot.com/2015/12/gpu-path-tracing-tutorial-2-interactive.html
-    a = (a ^ 61) ^ (a >> 16);
-    a = a + (a << 3);
-    a = a ^ (a >> 4);
-    a = a * 0x27d4eb2d;
-    a = a ^ (a >> 15);
-
-    return a;
-}
-
-__inline__ __device__ void running_estimate(float3& acc_buffer, const float3& curr_est, unsigned int N)
-{
-    acc_buffer += (curr_est - acc_buffer) / (N + 1.f);
-}
-
-struct HitInfo
-{
-    bool intersected = false;
-    float t = FLT_MAX;
-    float3 normal;
-    unsigned int matID;
-};
 
 __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters params, unsigned int hashed_N)
 {
@@ -49,66 +22,40 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
 
     curandState rng;
     curand_init(hashed_N + offset, 0, 0, &rng);
-    cudaRay pRay;
-    scene.camera.GenerateRay(idx, idy, rng, &pRay);
+    cudaRay ray;
+    scene.camera.GenerateRay(idx, idy, rng, &ray);
 
     float3 L = make_float3(0.f, 0.f, 0.f);
     float3 T = make_float3(1.f, 1.f, 1.f);
 
     for(auto k = 0; k < 5; ++k)
     {
-        HitInfo hit;
-        //find nearest intersection
-        for(auto i = 0; i < scene.num_aabb_boxes; ++i)
+        HitInfo hi;
+        if(!scene_intersect(scene, ray, hi)) break;
+        L += T * scene.materials[hi.matID].emition;
+
+        if(scene.materials[hi.matID].bsdf_type == BSDF_DIFFUSE)
         {
-            const cudaAABB& box = scene.aabb_boxes[i];
-            float ttmp;
-            if(box.Intersect(pRay, &ttmp) && (ttmp < hit.t))
+            ray.orig = hi.pt;
+            ray.dir = cosine_weightd_sample_hemisphere(rng, hi.normal);
+
+            T *= scene.materials[hi.matID].albedo;
+        }
+
+        if(scene.materials[hi.matID].bsdf_type == BSDF_GLASS)
+        {
+            ray.orig = hi.pt;
+            bool into = dot(ray.dir, hi.normal) < 0.f;
+            float eta = into ? 1.f / scene.materials[hi.matID].ior : scene.materials[hi.matID].ior;
+            float cosin = into ? -dot(hi.normal, ray.dir) : dot(hi.normal, ray.dir);
+            float cost2 = 1.f - eta * eta * (1.f - cosin * cosin);
+
+            if(cost2 < 0.f)
             {
-                hit.intersected = true;
-                hit.t = ttmp;
-                hit.normal = box.GetNormal(pRay.PointOnRay(hit.t));
-                hit.matID = box.material_id;
+                T *= scene.materials[hi.matID].albedo;
+                ray.dir = reflect(ray.dir, hi.normal);
             }
         }
-
-        for(auto i = 0; i < scene.num_spheres; ++i)
-        {
-            const cudaSphere& sphere = scene.spheres[i];
-            float ttmp;
-            if(sphere.Intersect(pRay, &ttmp) && (ttmp < hit.t))
-            {
-                hit.intersected = true;
-                hit.t = ttmp;
-                hit.normal = sphere.GetNormal(pRay.PointOnRay(hit.t));
-                hit.matID = sphere.material_id;
-            }
-        }
-
-        for(auto i = 0; i < scene.num_planes; ++i)
-        {
-            const cudaPlane& plane = scene.planes[i];
-            float ttmp;
-            if(plane.Intersect(pRay, &ttmp) && (ttmp < hit.t))
-            {
-                hit.intersected = true;
-                hit.t = ttmp;
-                hit.normal = plane.GetNormal(pRay.PointOnRay(hit.t));
-                hit.matID = plane.material_id;
-            }
-        }
-
-        if(!hit.intersected)
-        {
-            L = make_float3(0.f);
-            break;
-        }
-
-        pRay.orig = pRay.PointOnRay(hit.t);
-        pRay.dir = cosine_weightd_sample_hemisphere(rng, hit.normal);
-
-        L += scene.materials[hit.matID].emition * T;
-        T *= scene.materials[hit.matID].albedo;
     }
 
     running_estimate(params.hdr_buffer[offset], L, params.iteration_count);
