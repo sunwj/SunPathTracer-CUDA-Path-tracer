@@ -8,26 +8,26 @@
 #include <cuda_runtime.h>
 #include "helper_math.h"
 
-enum MATERIAL_TYPE{DIFFUSE, PERFECT_SPECULAR, REFRACTIVE};
+enum BSDFType{BSDF_DIFFUSE, BSDF_GLOSSY, BSDF_GLASS};
 
 class cudaMaterial
 {
 public:
     cudaMaterial()
     {
-        MATERIAL_TYPE mat_type = DIFFUSE;
-        albedo = make_float3(0.8f);
+        bsdf_type = BSDF_DIFFUSE;
         emition = make_float3(0.f);
+        albedo = make_float3(0.8f);
+        roughness = 1.f;
         ior = 1.f;
     }
 
 public:
-    union {
-        float3 albedo;
-        float3 specular_color;
-    };
     float3 emition;
+    float3 albedo;
+    float roughness;
     float ior;
+    BSDFType bsdf_type;
 };
 
 #endif //SUNPATHTRACER_CUDA_MATERIAL_H
