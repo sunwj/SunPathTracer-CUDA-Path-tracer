@@ -50,4 +50,14 @@ __inline__ __device__ float3 cosine_weightd_sample_hemisphere(curandState& rng, 
     return sinTheta * cosf(phi) * onb.u + sinTheta * sinf(phi) * onb.v + cosTheta * onb.w;
 }
 
+__inline__ __device__ float3 sample_phong(curandState& rng, float roughness, const float3& n)
+{
+    cudaONB onb(n);
+    float phi = 2.f * M_PI * curand_uniform(&rng);
+    float cosTheta = powf(1.f - curand_uniform(&rng), 1.f / (roughness + 1.f));
+    float sinTheta = sqrtf(fmaxf(0.f, 1.f - cosTheta * cosTheta));
+
+    return normalize(sinTheta * cosf(phi) * onb.u + sinTheta * sinf(phi) * onb.v + cosTheta * onb.w);
+}
+
 #endif //SUNPATHTRACER_SAMPLING_H
