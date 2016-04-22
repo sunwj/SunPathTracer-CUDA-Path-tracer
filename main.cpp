@@ -39,15 +39,15 @@ void init()
     checkCudaErrors(cudaMalloc((void**)&(renderParams.hdr_buffer), sizeof(float3) * WIDTH * HEIGHT));
     checkCudaErrors(cudaMemset((void*)renderParams.hdr_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
 
-    renderParams.exposure = 1.5f;
+    renderParams.exposure = 1.0f;
     Scene host_scene;
     //build scene
     //camera
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 3.0f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f), 35.f));
-    //material
-    cudaMaterial mat;
-    mat.albedo = make_float3(0.7f, 0.7f, 0.7f);
-    host_scene.AddMaterial(mat);
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 3.0f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f), 15.f));
+
+    cudaMaterial mat1;
+    mat1.albedo = make_float3(0.7f, 0.5f, 0.3f);
+    host_scene.AddMaterial(mat1);
     //table top
     host_scene.AddAABB(cudaAABB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
     //table legs
@@ -66,20 +66,26 @@ void init()
     host_scene.AddAABB(cudaAABB(make_float3(0.65, 0.05, -0.15), make_float3(0.7, 0.1, 0.15), host_scene.GetLastMaterialID()));
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, -0.09), make_float3(0.7, 0.1, -0.03), host_scene.GetLastMaterialID()));
     host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, 0.03), make_float3(0.7, 0.1, 0.09), host_scene.GetLastMaterialID()));
+
     //sphere on the table
-    mat.albedo = make_float3(1.f, 1.f, 1.f);
-    mat.bsdf_type = BSDF_GLASS;
-    mat.ior = 1.45f;
-    host_scene.AddMaterial(mat);
-    host_scene.AddSphere(cudaSphere(make_float3(-0.5, 0.01, 0), 0.25, host_scene.GetLastMaterialID()));
-    //walls
-    mat.albedo = make_float3(0.8f, 0.8f, 0.8f);
-    mat.bsdf_type = BSDF_DIFFUSE;
-    mat.ior = 1.f;
-    host_scene.AddMaterial(mat);
+    cudaMaterial mat2;
+    mat2.albedo = make_float3(0.595f, 0.8f, 0.629f);
+    mat2.bsdf_type = BSDF_GLOSSY;
+    mat2.ior = 1.45f;
+    mat2.roughness = 15.f;
+    host_scene.AddMaterial(mat2);
+    host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.099, 0.1), 0.20, host_scene.GetLastMaterialID()));
+
+    //cudaMaterial mat7;
+    //mat7.albedo = make_float3(0.4f, 0.8f, 0.7f);
+    //host_scene.AddMaterial(mat7);
+    //host_scene.AddSphere(cudaSphere(make_float3(0.2, -0.099, -0.1), 0.20, host_scene.GetLastMaterialID()));
+
+    ////walls
+    cudaMaterial mat3;
+    mat3.albedo = make_float3(1.f, 1.f, 1.f);
+    host_scene.AddMaterial(mat3);
     //back
-    //mat.albedo = make_float3(0.5f, 0.1f, 0.2f);
-    //host_scene.AddMaterial(mat);
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -0.8f), normalize(make_float3(0.f, 0.f, 1.f)), host_scene.GetLastMaterialID()));
     //front
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 1.2f), normalize(make_float3(0.f, 0.f, -1.f)), host_scene.GetLastMaterialID()));
@@ -88,18 +94,79 @@ void init()
     //top
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.8f, 0.f), normalize(make_float3(0.f, -1.f, 0.f)), host_scene.GetLastMaterialID()));
     //left
-    mat.albedo = make_float3(0.1f, 0.5f, 1.f);
-    host_scene.AddMaterial(mat);
+    cudaMaterial mat4;
+    mat4.albedo = make_float3(0.1f, 0.5f, 1.f);
+    host_scene.AddMaterial(mat4);
     host_scene.AddPlane(cudaPlane(make_float3(-0.8f, 0.f, 0.f), normalize(make_float3(1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
     //right
-    mat.albedo = make_float3(1.0f, 0.9f, 0.1f);
-    host_scene.AddMaterial(mat);
+    cudaMaterial mat5;
+    mat5.albedo = make_float3(1.0f, 0.9f, 0.1f);
+    host_scene.AddMaterial(mat5);
     host_scene.AddPlane(cudaPlane(make_float3(0.8f, 0.f, 0.f), normalize(make_float3(-1.f, 0.f, 0.f)), host_scene.GetLastMaterialID()));
+
     //light
-    mat.albedo = make_float3(1.f, 1.f, 1.f);
-    mat.emition = make_float3(2.f, 2.f, 2.f);
-    host_scene.AddMaterial(mat);
+    cudaMaterial mat6;
+    mat6.albedo = make_float3(1.f, 1.f, 1.f);
+    mat6.emition = make_float3(2.f, 2.f, 2.f);
+    host_scene.AddMaterial(mat6);
     host_scene.AddAABB(cudaAABB(make_float3(-0.38, 0.78, -0.25), make_float3(0.32, 0.8, 0.25), host_scene.GetLastMaterialID()));
+
+    /*
+    //cornell box
+    //camera
+    host_scene.AddCamera(cudaCamera(make_float3(50.f, 52.f, 335.6f), make_float3(50.f, 52.f - 0.042612f, 335.6f - 1.f), make_float3(0.f, 1.f, 0.f), 25.f));
+
+    //left
+    cudaMaterial mat1;
+    mat1.albedo = make_float3(0.75f, 0.0f, 0.0f);
+    host_scene.AddMaterial(mat1);
+    host_scene.AddSphere(cudaSphere(make_float3(1e5f + 1.0f, 40.8f, 81.6f), 1e5f, host_scene.GetLastMaterialID()));
+
+    //right
+    cudaMaterial mat2;
+    mat2.albedo = make_float3(.0f, .75f, .0f);
+    host_scene.AddMaterial(mat2);
+    host_scene.AddSphere(cudaSphere(make_float3(-1e5f + 99.0f, 40.8f, 81.6f), 1e5f, host_scene.GetLastMaterialID()));
+
+    //back
+    cudaMaterial mat3;
+    mat3.albedo = make_float3(.75f, .75f, .75f);
+    host_scene.AddMaterial(mat3);
+    host_scene.AddSphere(cudaSphere(make_float3(50.0f, 40.8f, 1e5f), 1e5f, host_scene.GetLastMaterialID()));
+
+    //front
+    cudaMaterial mat4;
+    mat4.albedo = make_float3(1.00f, 1.00f, 1.00f);
+    host_scene.AddMaterial(mat4);
+    host_scene.AddSphere(cudaSphere(make_float3(50.0f, 40.8f, -1e5f + 600.0f), 1e5f, host_scene.GetLastMaterialID()));
+
+    //top
+    cudaMaterial mat6;
+    mat6.albedo = make_float3(.75f, .75f, .75f);
+    host_scene.AddMaterial(mat6);
+    host_scene.AddSphere(cudaSphere(make_float3(50.0f, -1e5f + 81.6f, 81.6f), 1e5f, host_scene.GetLastMaterialID()));
+
+    //bottom
+    cudaMaterial mat5;
+    mat5.albedo = make_float3(.75f, .75f, .75f);
+    host_scene.AddMaterial(mat5);
+    host_scene.AddSphere(cudaSphere(make_float3(50.0f, 1e5f, 81.6f), 1e5f, host_scene.GetLastMaterialID()));
+
+    //light
+    cudaMaterial mat7;
+    mat7.albedo = make_float3(1.00f, 1.00f, 1.00f);
+    mat7.emition = make_float3(2.f);
+    host_scene.AddMaterial(mat7);
+    host_scene.AddSphere(cudaSphere(make_float3(50.0f, 681.6f - .77f, 81.6f), 600.0f, host_scene.GetLastMaterialID()));
+
+    //glass sphere
+    cudaMaterial mat8;
+    mat8.albedo = make_float3(1.00f, 1.00f, 1.00f);
+    mat8.ior = 1.5;
+    mat8.bsdf_type = BSDF_GLASS;
+    host_scene.AddMaterial(mat8);
+    host_scene.AddSphere(cudaSphere(make_float3(73.0f, 26.5f, 88.0f), 16.5f, host_scene.GetLastMaterialID()));
+    */
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);

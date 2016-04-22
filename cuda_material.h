@@ -18,7 +18,7 @@ public:
         bsdf_type = BSDF_DIFFUSE;
         emition = make_float3(0.f);
         albedo = make_float3(0.8f);
-        roughness = 1.f;
+        roughness = 0.f;
         ior = 1.f;
     }
 
