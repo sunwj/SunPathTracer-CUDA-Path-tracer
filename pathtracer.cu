@@ -6,9 +6,9 @@
 #include "cuda_camera.h"
 #include "cuda_scene.h"
 #include "tonemapping.h"
-#include "sampling.h"
 #include "render_parameters.h"
 #include "kernel_globals.h"
+#include "shader.h"
 
 auto constexpr WIDTH = 640;
 auto constexpr HEIGHT = 480;
@@ -28,70 +28,30 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
     float3 L = make_float3(0.f, 0.f, 0.f);
     float3 T = make_float3(1.f, 1.f, 1.f);
 
-    HitInfo hi;
+    SurfaceElement se;
     for(auto k = 0; k < 5; ++k)
     {
-        if(!scene_intersect(scene, ray, hi)) break;
-        L += T * scene.materials[hi.matID].emition;
+        if(!scene_intersect(scene, ray, se)) break;
+        L += T * scene.materials[se.matID].emition;
 
-        if(scene.materials[hi.matID].bsdf_type == BSDF_DIFFUSE)
+        switch(scene.materials[se.matID].bsdf_type)
         {
-            ray.orig = hi.pt;
-            ray.dir = cosine_weightd_sample_hemisphere(rng, hi.normal);
-
-            T *= scene.materials[hi.matID].albedo;
-        }
-
-        if(scene.materials[hi.matID].bsdf_type == BSDF_GLASS)
-        {
-            float eta = scene.materials[hi.matID].ior;
-            if(dot(hi.normal, ray.dir) > 0.f)
-            {
-                eta = 1.f / eta;
-                hi.normal = -hi.normal;
-            }
-            eta = 1.f / eta;
-            float cosin = -dot(hi.normal, ray.dir);
-            float cost2 = 1.f - eta * eta * (1.f - cosin * cosin);
-
-            if(cost2 < 0.f)
-            {
-                T *= scene.materials[hi.matID].albedo;
-                ray.dir = reflect(ray.dir, hi.normal);
-            }
-            else
-            {
-                float3 tdir = eta * ray.dir + hi.normal * (eta * cosin - sqrtf(cost2));
-                tdir = normalize(tdir);
-
-                float n1 = (cosin < 0.f) ? 1.f : scene.materials[hi.matID].ior;
-                float n2 = (cosin < 0.f) ? scene.materials[hi.matID].ior : 1.f;
-                float R0 = (n1 - n2) * (n1 - n2) / ((n1 + n2) * (n1 + n2));
-                float c = cosin;
-                float Pr = R0 + (1.f - R0) * c * c * c * c * c;
-                float Pt = 1.f - Pr;
-                float P = 0.25f + 0.5f * Pr;
-
-                if(curand_uniform(&rng) < P)
-                {
-                    T *= scene.materials[hi.matID].albedo;
-                    T *= (Pr / P);
-                    ray.dir = reflect(ray.dir, hi.normal);
-                }
-                else
-                {
-                    T *= scene.materials[hi.matID].albedo;
-                    T *= (Pt / (1.f - P));
-                    ray.dir = tdir;
-                }
-            }
-
-            ray.orig = hi.pt;
+            case BSDF_DIFFUSE:
+                diffuse_shading(scene, se, rng, &ray, &T);
+                break;
+            case BSDF_GLASS:
+                refractive_shading(scene, se, rng, &ray, &T);
+                break;
+            case BSDF_GLOSSY:
+                glossy_shading(scene, se, rng, &ray, &T);
+                break;
+            default:
+                break;
         }
     }
 
     running_estimate(params.hdr_buffer[offset], L, params.iteration_count);
-    L = reinhard_tone_mapping(params.hdr_buffer[offset], 0.6f);
+    L = reinhard_tone_mapping(params.hdr_buffer[offset], params.exposure);
     img[offset] = make_uchar4(fabsf(L.x) * 255, fabsf(L.y) * 255, fabsf(L.z) * 255, 0);
 }
 
