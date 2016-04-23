@@ -7,11 +7,6 @@
 #include <cuda_gl_interop.h>
 
 #include "Scene.h"
-#include "helper_cuda.h"
-#include "cuda_camera.h"
-#include "cuda_shape.h"
-#include "cuda_scene.h"
-#include "cuda_material.h"
 #include "pathtracer.h"
 
 auto constexpr WIDTH = 640;
@@ -47,6 +42,8 @@ void init()
 
     cudaMaterial mat1;
     mat1.albedo = make_float3(0.7f, 0.5f, 0.3f);
+    //mat1.bsdf_type = BSDF_PLASTIC;
+    //mat1.ior = 1.7f;
     host_scene.AddMaterial(mat1);
     //table top
     host_scene.AddAABB(cudaAABB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
@@ -69,9 +66,10 @@ void init()
 
     //sphere on the table
     cudaMaterial mat2;
-    mat2.albedo = make_float3(0.595f, 0.8f, 0.629f);
+    mat2.albedo = make_float3(0.448f, 0.8f, 0.666f);
+    //mat2.albedo = make_float3(0.1f, 0.6f, 0.3f);
     mat2.bsdf_type = BSDF_GLOSSY;
-    mat2.ior = 1.45f;
+    mat2.ior = 1.5f;
     mat2.roughness = 15.f;
     host_scene.AddMaterial(mat2);
     host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.099, 0.1), 0.20, host_scene.GetLastMaterialID()));

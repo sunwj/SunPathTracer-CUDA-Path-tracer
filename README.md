@@ -11,4 +11,8 @@
 <img src="./images/3.png"></img>
 <br />
 
+<h3>Smooth layered shading</h3>
+<img src="./images/4.png"></img>
+<br />
+
 working in progress...

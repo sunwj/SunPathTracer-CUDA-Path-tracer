@@ -45,6 +45,9 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
             case BSDF_GLOSSY:
                 glossy_shading(scene, se, rng, &ray, &T);
                 break;
+            case BSDF_PLASTIC:
+                coat_shading(scene, se, rng, &ray, &T);
+                break;
             default:
                 break;
         }
