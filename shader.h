@@ -38,9 +38,12 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         eta = 1.f / eta;
         nl = -se.normal;
     }
+    else
+    {
+        if(scene.materials[se.matID].roughness < ROUGH_THRESHOLD)
+            nl = sample_phong(rng, scene.materials[se.matID].roughness, nl);
+    }
     eta = 1.f / eta;
-    if(scene.materials[se.matID].roughness < ROUGH_THRESHOLD)
-        nl = sample_phong(rng, scene.materials[se.matID].roughness, nl);
     float cosin = -dot(nl, ray->dir);
     float cost2 = 1.f - eta * eta * (1.f - cosin * cosin);
 

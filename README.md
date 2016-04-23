@@ -15,4 +15,5 @@
 <img src="./images/4.png"></img>
 <br />
 
-working in progress...
+working in progress... <br />
+add triangle mesh support (BVH acceleration)

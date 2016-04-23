@@ -66,13 +66,13 @@ void init()
 
     //sphere on the table
     cudaMaterial mat2;
-    mat2.albedo = make_float3(0.448f, 0.8f, 0.666f);
-    //mat2.albedo = make_float3(0.1f, 0.6f, 0.3f);
-    mat2.bsdf_type = BSDF_GLOSSY;
+    //mat2.albedo = make_float3(0.448f, 0.8f, 0.666f);
+    mat2.albedo = make_float3(1.f);
+    mat2.bsdf_type = BSDF_GLASS;
     mat2.ior = 1.5f;
-    mat2.roughness = 15.f;
+    mat2.roughness = 9999.f;
     host_scene.AddMaterial(mat2);
-    host_scene.AddSphere(cudaSphere(make_float3(-0.1, -0.099, 0.1), 0.20, host_scene.GetLastMaterialID()));
+    host_scene.AddSphere(cudaSphere(make_float3(-0.1, 0.12, 0.1), 0.20, host_scene.GetLastMaterialID()));
 
     //cudaMaterial mat7;
     //mat7.albedo = make_float3(0.4f, 0.8f, 0.7f);
