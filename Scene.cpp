@@ -36,11 +36,11 @@ void Scene::BuildSceneForGPU(cudaScene &scene)
         checkCudaErrors(cudaMemcpy(scene.spheres, this->spheres.data(), sizeof(cudaSphere) * this->spheres.size(), cudaMemcpyHostToDevice));
     }
 
-    scene.num_aabb_boxes = this->aabb_boxes.size();
-    if(scene.num_aabb_boxes != 0)
+    scene.num_aab = this->aab.size();
+    if(scene.num_aab != 0)
     {
-        checkCudaErrors(cudaMalloc((void**)&(scene.aabb_boxes), sizeof(cudaAABB) * this->aabb_boxes.size()));
-        checkCudaErrors(cudaMemcpy(scene.aabb_boxes, this->aabb_boxes.data(), sizeof(cudaAABB) * this->aabb_boxes.size(), cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMalloc((void**)&(scene.aab), sizeof(cudaAAB) * this->aab.size()));
+        checkCudaErrors(cudaMemcpy(scene.aab, this->aab.data(), sizeof(cudaAAB) * this->aab.size(), cudaMemcpyHostToDevice));
     }
 
     scene.num_planes = this->planes.size();

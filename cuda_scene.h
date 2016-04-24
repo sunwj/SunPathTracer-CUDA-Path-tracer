@@ -19,7 +19,7 @@ public:
         materials = NULL;
 
         spheres = NULL;
-        aabb_boxes = NULL;
+        aab = NULL;
         planes = NULL;
     }
 
@@ -35,7 +35,7 @@ public:
         //    checkCudaErrors(cudaFree(spheres));
 //
         //if(aabb_boxes != NULL)
-        //    checkCudaErrors(cudaFree(aabb_boxes));
+        //    checkCudaErrors(cudaFree(aab));
     }
 
 public:
@@ -50,8 +50,8 @@ public:
     unsigned int num_spheres;
     cudaSphere* spheres;
 
-    unsigned int num_aabb_boxes;
-    cudaAABB* aabb_boxes;
+    unsigned int num_aab;
+    cudaAAB* aab;
 
     unsigned int num_planes;
     cudaPlane* planes;

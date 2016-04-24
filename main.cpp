@@ -46,23 +46,23 @@ void init()
     //mat1.ior = 1.7f;
     host_scene.AddMaterial(mat1);
     //table top
-    host_scene.AddAABB(cudaAABB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
     //table legs
-    host_scene.AddAABB(cudaAABB(make_float3(-0.45, -1, -0.45), make_float3(-0.4, -0.35, -0.4), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.2, -1, -0.45), make_float3(0.25, -0.35, -0.4), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(-0.45, -1, 0.4), make_float3(-0.4, -0.35, 0.45), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.2, -1, 0.4), make_float3(0.25, -0.35, 0.45), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(-0.45, -1, -0.45), make_float3(-0.4, -0.35, -0.4), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.2, -1, -0.45), make_float3(0.25, -0.35, -0.4), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(-0.45, -1, 0.4), make_float3(-0.4, -0.35, 0.45), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.2, -1, 0.4), make_float3(0.25, -0.35, 0.45), host_scene.GetLastMaterialID()));
     //chair set
-    host_scene.AddAABB(cudaAABB(make_float3(0.3, -0.6, -0.2), make_float3(0.7, -0.55, 0.2), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.3, -0.6, -0.2), make_float3(0.7, -0.55, 0.2), host_scene.GetLastMaterialID()));
     //chair legs
-    host_scene.AddAABB(cudaAABB(make_float3(0.3, -1, -0.2), make_float3(0.35, -0.6, -0.15), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.3, -1, 0.15), make_float3(0.35, -0.6, 0.2), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.65, -1, -0.2), make_float3(0.7, 0.1, -0.15), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.65, -1, 0.15), make_float3(0.7, 0.1, 0.2), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.3, -1, -0.2), make_float3(0.35, -0.6, -0.15), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.3, -1, 0.15), make_float3(0.35, -0.6, 0.2), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.65, -1, -0.2), make_float3(0.7, 0.1, -0.15), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.65, -1, 0.15), make_float3(0.7, 0.1, 0.2), host_scene.GetLastMaterialID()));
     //chair back
-    host_scene.AddAABB(cudaAABB(make_float3(0.65, 0.05, -0.15), make_float3(0.7, 0.1, 0.15), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, -0.09), make_float3(0.7, 0.1, -0.03), host_scene.GetLastMaterialID()));
-    host_scene.AddAABB(cudaAABB(make_float3(0.65, -0.55, 0.03), make_float3(0.7, 0.1, 0.09), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.65, 0.05, -0.15), make_float3(0.7, 0.1, 0.15), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.65, -0.55, -0.09), make_float3(0.7, 0.1, -0.03), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(0.65, -0.55, 0.03), make_float3(0.7, 0.1, 0.09), host_scene.GetLastMaterialID()));
 
     //sphere on the table
     cudaMaterial mat2;
@@ -107,7 +107,7 @@ void init()
     mat6.albedo = make_float3(1.f, 1.f, 1.f);
     mat6.emition = make_float3(2.f, 2.f, 2.f);
     host_scene.AddMaterial(mat6);
-    host_scene.AddAABB(cudaAABB(make_float3(-0.38, 0.78, -0.25), make_float3(0.32, 0.8, 0.25), host_scene.GetLastMaterialID()));
+    host_scene.AddAABB(cudaAAB(make_float3(-0.38, 0.78, -0.25), make_float3(0.32, 0.8, 0.25), host_scene.GetLastMaterialID()));
 
     /*
     //cornell box
@@ -196,6 +196,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+#include "ObjMesh.h"
+
 int main(int argc, char** argv)
 {
     GLFWwindow* window;
@@ -227,4 +229,8 @@ int main(int argc, char** argv)
     glfwTerminate();
 
     return 0;
+
+    //ObjMesh mesh("lucy.obj");
+    //return 0;
 }
+

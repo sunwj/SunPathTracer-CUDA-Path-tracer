@@ -60,10 +60,10 @@ public:
     unsigned int material_id;
 };
 
-class cudaAABB
+class cudaAAB
 {
 public:
-    __host__ __device__ cudaAABB(const float3& _bMin, const float3& _bMax, unsigned int _material_id)
+    __host__ __device__ cudaAAB(const float3& _bMin, const float3& _bMax, unsigned int _material_id)
     {
         bMax = _bMax;
         bMin = _bMin;
