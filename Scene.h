@@ -34,9 +34,9 @@ public:
         this->spheres.push_back(sphere);
     }
 
-    void AddAABB(const cudaAABB& aabb)
+    void AddAABB(const cudaAAB& aab)
     {
-        this->aabb_boxes.push_back(aabb);
+        this->aab.push_back(aab);
     }
 
     void AddPlane(const cudaPlane& plane)
@@ -58,7 +58,7 @@ public:
 
     //geometries
     std::vector<cudaSphere> spheres;
-    std::vector<cudaAABB> aabb_boxes;
+    std::vector<cudaAAB> aab;
     std::vector<cudaPlane> planes;
 };
 
