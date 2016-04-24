@@ -20,9 +20,9 @@ include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLFW_INCLUDE_DIRS})
 
 set(CUDA_SOURCES pathtracer.cu)
-set(SOURCE_FILES main.cpp Scene.cpp)
+set(SOURCE_FILES main.cpp Scene.cpp ObjMesh.cpp)
 
 cuda_compile(CUDA_OBJS ${CUDA_SOURCES})
 
-add_executable(SunPathTracer ${SOURCE_FILES} ${CUDA_OBJS} cuda_material.h)
+add_executable(SunPathTracer ${SOURCE_FILES} ${CUDA_OBJS})
 target_link_libraries(SunPathTracer ${CUDA_LIBRARIES} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES})
