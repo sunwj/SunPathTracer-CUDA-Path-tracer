@@ -8,6 +8,7 @@
 
 #include "Scene.h"
 #include "pathtracer.h"
+#include "BVH.h"
 
 auto constexpr WIDTH = 640;
 auto constexpr HEIGHT = 480;
@@ -200,7 +201,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main(int argc, char** argv)
 {
-    GLFWwindow* window;
+    /*GLFWwindow* window;
     if(!glfwInit())
         return -1;
 
@@ -228,9 +229,14 @@ int main(int argc, char** argv)
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    return 0;
+    return 0;*/
 
-    //ObjMesh mesh("lucy.obj");
-    //return 0;
+    Transformation t;
+    ObjMesh mesh("sol.obj", t);
+    BVH bvh(mesh);
+    std::cout<<"Numer of nodes: "<<bvh.totalNodes<<std::endl;
+    std::cout<<bvh.root->bounds.bmax.x<<", "<<bvh.root->bounds.bmax.y<<", "<<bvh.root->bounds.bmax.z<<std::endl;
+    std::cout<<bvh.root->bounds.bmin.x<<", "<<bvh.root->bounds.bmin.y<<", "<<bvh.root->bounds.bmin.z<<std::endl;
+    return 0;
 }
 

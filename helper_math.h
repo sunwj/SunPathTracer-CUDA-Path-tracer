@@ -1463,4 +1463,30 @@ inline __device__ __host__ float4 smoothstep(float4 a, float4 b, float4 x)
     return (y*y*(make_float4(3.0f) - (make_float4(2.0f)*y)));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// self defined
+////////////////////////////////////////////////////////////////////////////////
+
+inline __device__ __host__ float get_by_idx(const float3& v, int idx)
+{
+    float t;
+    switch(idx)
+    {
+        case 0:
+            t = v.x;
+            break;
+        case 1:
+            t = v.y;
+            break;
+        case 2:
+            t = v.z;
+            break;
+        default:
+            t = 0.f;
+            break;
+    }
+
+    return t;
+}
+
 #endif

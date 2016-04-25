@@ -11,12 +11,14 @@
 #include <cfloat>
 
 #include "helper_math.h"
+#include "Transformation.h"
 
 class ObjMesh
 {
 public:
-    ObjMesh(std::string filename);
-    void Load(std::string filename);
+    ObjMesh() {}
+    ObjMesh(std::string filename, Transformation& t);
+    void Load(std::string filename, Transformation& t);
 
 public:
     std::vector<float3> vertices;
