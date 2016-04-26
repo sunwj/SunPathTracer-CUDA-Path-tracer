@@ -37,6 +37,7 @@ void ObjMesh::Load(std::string filename, Transformation& t)
         {
             uint3 f;
             sscanf(buffer, "f %u %u %u\n", &f.x, &f.y, &f.z);
+            f = f - 1;
             faces.push_back(f);
         }
         else

@@ -41,6 +41,13 @@ public:
         bcenter = (bmin + bmax) * 0.5f;
     }
 
+    BBox(const BBox& box)
+    {
+        this->bmin = box.bmin;
+        this->bmax = box.bmax;
+        this->bcenter = box.bcenter;
+    }
+
     int MaxExtent()
     {
         float3 diag = bmax - bmin;
@@ -77,7 +84,14 @@ inline BBox Union(const BBox& b1, const BBox& b2)
 class BVHPrimitiveInfo
 {
 public:
-    size_t pIdx;
+    BVHPrimitiveInfo(uint32_t idx, const BBox& box)
+    {
+        pIdx = idx;
+        bounds = box;
+    }
+
+public:
+    uint32_t pIdx;
     BBox bounds;
 };
 
@@ -136,7 +150,7 @@ public:
         uint32_t primitiveOffset;
         uint32_t rightChildOffset;
     };
-    uint8_t nPrimitives;
+    uint32_t nPrimitives;
 };
 
 class BVH
@@ -144,7 +158,7 @@ class BVH
 public:
     BVH(ObjMesh& _mesh);
     ~BVH();
-    BVHNode* RecursiveBuild(uint32_t start, uint32_t end);
+    BVHNode* RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth = 0);
     uint32_t Flatten(BVHNode* node, float* offset);
 
 private:
@@ -158,5 +172,7 @@ public:
     BVHNode* root;
     std::vector<LBVHNode> lbvh;
 };
+
+void export_linear_bvh(const BVH& bvh, std::string filename);
 
 #endif //SUNPATHTRACER_BVH_H

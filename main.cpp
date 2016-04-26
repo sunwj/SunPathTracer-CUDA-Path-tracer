@@ -232,11 +232,12 @@ int main(int argc, char** argv)
     return 0;*/
 
     Transformation t;
-    ObjMesh mesh("sol.obj", t);
+    ObjMesh mesh("bunny.obj", t);
     BVH bvh(mesh);
     std::cout<<"Numer of nodes: "<<bvh.totalNodes<<std::endl;
     std::cout<<bvh.root->bounds.bmax.x<<", "<<bvh.root->bounds.bmax.y<<", "<<bvh.root->bounds.bmax.z<<std::endl;
     std::cout<<bvh.root->bounds.bmin.x<<", "<<bvh.root->bounds.bmin.y<<", "<<bvh.root->bounds.bmin.z<<std::endl;
+    export_linear_bvh(bvh, "bvh.bvh");
     return 0;
 }
 
