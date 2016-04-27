@@ -72,4 +72,12 @@ void ObjMesh::ApplyTransform(Transformation& t)
         vmin = fminf(vmin, item);
         vmax = fmaxf(vmax, item);
     }
+
+#ifdef __PRINT_INFO__
+    std::cout<<"After transformation:"<<std::endl;
+    std::cout<<"Mesh extent:"<<std::endl
+        <<"max: ("<<vmax.x<<", "<<vmax.y<<", "<<vmax.z<<")"<<std::endl
+        <<"min: ("<<vmin.x<<", "<<vmin.y<<", "<<vmin.z<<")"<<std::endl;
+    std::cout<<"Mesh diagnal length: "<<length(vmax - vmin)<<std::endl;
+#endif
 }

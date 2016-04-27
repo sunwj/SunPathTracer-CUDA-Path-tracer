@@ -258,7 +258,7 @@ public:
 /***************************************************************************
  * cudaMesh
  ***************************************************************************/
-#define BVH_STACK_SIZE 32
+#define BVH_STACK_SIZE 64
 class cudaMesh
 {
 public:
@@ -268,12 +268,52 @@ public:
 
     __device__ bool Intersect(const cudaRay& ray, float* t, uint32_t* id) const
     {
-        int stack_top = 0;
-        uint32_t stack[BVH_STACK_SIZE] = {0};
-
+        bool isIntersected = false;
         float tmin = FLT_MAX;
+        int stackTop = 0;
+        uint32_t stack[BVH_STACK_SIZE] = {0};
+        stack[stackTop++] = 0;
 
-        return false;
+        while(stackTop)
+        {
+            uint32_t node_id = stack[stackTop--];
+
+            LBVHNode node = bvh[node_id];
+            //inner node
+            if(node.nPrimitives == 0)
+            {
+                if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
+                {
+                    //push left child idx
+                    stack[stackTop++] = node_id + 1;
+                    //push right child idx
+                    stack[stackTop++] = node.rightChildOffset;
+
+                    if(stackTop >= BVH_STACK_SIZE)
+                    {
+                        return false;
+                    }
+                }
+            }
+            else //leaf node
+            {
+                if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
+                {
+                    for(auto i = node.primitiveOffset; i < node.nPrimitives; ++i)
+                    {
+                        if(cudaTriangle::Intersect(ray, triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2], t) && *t < tmin)
+                        {
+                            isIntersected = true;
+                            tmin = *t;
+                            *id = i;
+                        }
+                    }
+                }
+            }
+        }
+
+        *t = tmin;
+        return isIntersected;
     }
 
     __device__ float3 GetNormal(uint32_t id) const

@@ -198,16 +198,16 @@ void init()
     //objmesh
     ObjMesh mesh("ico.obj");
     Transformation t;
-    t.Scale(2.f / make_float3(length(mesh.vmax - mesh.vmin)));
-    t.Translate(make_float3(0.f, 1.f, 5.f));
-    mesh.ApplyTransform(t);
+    //t.Scale(2.f / make_float3(length(mesh.vmax - mesh.vmin)));
+    //t.Translate(make_float3(0.f, 1.f, 5.f));
+    //mesh.ApplyTransform(t);
     BVH bvh(mesh);
     export_linear_bvh(bvh, "bvh.bvh");
 
     cudaMaterial mat3;
     //mat3.albedo = make_float3(0.8f, 0.14f, 0.14f);
     mat3.albedo = make_float3(1.f);
-    mat3.bsdf_type = BSDF_GLASS;
+    mat3.bsdf_type = BSDF_DIFFUSE;
     mat3.ior = 1.5f;
     mat3.roughness = 9999.f;
     host_scene.AddMaterial(mat3);

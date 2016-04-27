@@ -34,6 +34,8 @@ BVH::BVH(ObjMesh& _mesh)
         lbvh.push_back(LBVHNode());
     float offset = 0;
     Flatten(root, &offset);
+    std::cout<<"Root max: ("<<lbvh[0].bMax.x<<", "<<lbvh[0].bMax.y<<", "<<lbvh[0].bMax.z<<")"<<std::endl;
+    std::cout<<"Root min: ("<<lbvh[0].bMin.x<<", "<<lbvh[0].bMin.y<<", "<<lbvh[0].bMin.z<<")"<<std::endl;
 }
 
 BVH::~BVH()
