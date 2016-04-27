@@ -42,7 +42,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
     bool intersected = false;
     float tmin = FLT_MAX;
 
-    float t;
+    float t = tmin;
     for(auto i = 0; i < scene.num_spheres; ++i)
     {
         const cudaSphere& sphere = scene.spheres[i];
@@ -91,8 +91,9 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
     for(auto i = 0; i < scene.num_meshes; ++i)
     {
         const cudaMesh& mesh = scene.meshes[i];
-        int id = -1;
-        if(((id = mesh.Intersect(ray, &t)) >= 0) && t < tmin)
+        uint32_t id;
+        t = tmin;
+        if(mesh.Intersect(ray, &t, &id) && t < tmin)
         {
             tmin = t;
             intersected = true;

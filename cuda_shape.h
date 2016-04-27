@@ -14,6 +14,9 @@
 #include "cuda_material.h"
 #include "BVH.h"
 
+/***************************************************************************
+ * cudaSphere
+ ***************************************************************************/
 class cudaSphere
 {
 public:
@@ -62,6 +65,9 @@ public:
     unsigned int material_id;
 };
 
+/***************************************************************************
+ * cudaAAB
+ ***************************************************************************/
 class cudaAAB
 {
 public:
@@ -141,7 +147,9 @@ public:
     unsigned int material_id;
 };
 
-//todo: add triangle
+/***************************************************************************
+ * cudaTriangle
+ ***************************************************************************/
 class cudaTriangle
 {
 public:
@@ -209,6 +217,9 @@ public:
     float3 normal;
 };
 
+/***************************************************************************
+ * cudaPlane
+ ***************************************************************************/
 class cudaPlane
 {
 public:
@@ -244,30 +255,25 @@ public:
     unsigned int material_id;
 };
 
+/***************************************************************************
+ * cudaMesh
+ ***************************************************************************/
+#define BVH_STACK_SIZE 32
 class cudaMesh
 {
 public:
-    __host__ __device__ cudaMesh(LBVHNode* _bvh, float3* _triangles, unsigned int _material_id, uint32_t _num_triangles, const float3& _bMax, const float3& _bMin):
-        bvh(_bvh), triangles(_triangles), material_id(_material_id), num_triangles(_num_triangles), bMax(_bMax), bMin(_bMin)
+    __host__ __device__ cudaMesh(LBVHNode* _bvh, float3* _triangles, unsigned int _material_id):
+        bvh(_bvh), triangles(_triangles), material_id(_material_id)
     {}
 
-    __device__ int Intersect(const cudaRay& ray, float* t) const
+    __device__ bool Intersect(const cudaRay& ray, float* t, uint32_t* id) const
     {
-        float tt;
-        if(!cudaAAB::Intersect(ray, bMin, bMax, &tt)) return -1;
-        *t = FLT_MAX;
-        float ttmp = FLT_MAX - 1.f;
-        int id = -1;
-        for(auto i = 0; i < num_triangles; ++i)
-        {
-            if(cudaTriangle::Intersect(ray, triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2], &ttmp) && (ttmp < *t))
-            {
-                *t = ttmp;
-                id = i;
-            }
-        }
+        int stack_top = 0;
+        uint32_t stack[BVH_STACK_SIZE] = {0};
 
-        return id;
+        float tmin = FLT_MAX;
+
+        return false;
     }
 
     __device__ float3 GetNormal(uint32_t id) const
@@ -278,9 +284,6 @@ public:
 public:
     LBVHNode* bvh;
     float3* triangles;
-    uint32_t num_triangles;
-    float3 bMax;
-    float3 bMin;
     unsigned int material_id;
 };
 
@@ -307,7 +310,7 @@ inline cudaMesh create_cudaMesh(const BVH& bvh, unsigned int material_id)
     checkCudaErrors(cudaMalloc((void**)&(d_bvh), sizeof(LBVHNode) * bvh.lbvh.size()));
     checkCudaErrors(cudaMemcpy(d_bvh, bvh.lbvh.data(), sizeof(LBVHNode) * bvh.lbvh.size(), cudaMemcpyHostToDevice));
 
-    return cudaMesh(d_bvh, d_triangles, material_id, triangles.size() / 3, bvh.mesh.vmin, bvh.mesh.vmax);
+    return cudaMesh(d_bvh, d_triangles, material_id);
 }
 
 #endif //SUNPATHTRACER_SHAPE_H
