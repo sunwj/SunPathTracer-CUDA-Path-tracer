@@ -4,11 +4,10 @@
 
 #include "BVH.h"
 
-#define MIN_LEAF_PRIM_NUM 4
-#define MAX_LEAF_PRIM_NUM 16
+#define MIN_LEAF_PRIM_NUM 16
+#define MAX_LEAF_PRIM_NUM 32
 
-//static constexpr int nBuckets = 64;
-static constexpr uint32_t buckets_base = 512;
+static constexpr int nBuckets = 16;
 
 BVH::BVH(ObjMesh& _mesh)
 {
@@ -20,8 +19,11 @@ BVH::BVH(ObjMesh& _mesh)
         workList.push_back(BVHPrimitiveInfo(i, BBox(mesh.vertices[mesh.faces[i].x], mesh.vertices[mesh.faces[i].y], mesh.vertices[mesh.faces[i].z])));
 
     //recursive build
+    std::cout<<"Building BVH..."<<std::endl;
     orderedPrims.reserve(mesh.faces.size());
     root = RecursiveBuild(0, workList.size());
+    std::cout<<"Totoal nodes: "<<totalNodes<<std::endl;
+    std::cout<<"Max depth: "<<maxDepth<<std::endl;
 
     //replace mesh faces order with ordered one
     mesh.faces.swap(orderedPrims);
@@ -55,7 +57,8 @@ void BVH::Delete(BVHNode* node)
 uint32_t BVH::Flatten(BVHNode *node, float* offset)
 {
     LBVHNode* linearNode = &lbvh[*offset];
-    linearNode->bounds = node->bounds;
+    linearNode->bMax = node->bounds.bmax;
+    linearNode->bMin = node->bounds.bmin;
     uint32_t myOffset = (*offset)++;
     if(node->nPrims > 0)
     {
@@ -74,6 +77,7 @@ uint32_t BVH::Flatten(BVHNode *node, float* offset)
 
 BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
 {
+    maxDepth = maxDepth < depth ? depth : maxDepth;
     totalNodes++;
     BVHNode* node = new BVHNode;
 
@@ -119,11 +123,7 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
         }
 
         //partition primitives based on SAH
-        //uint32_t nBuckets = buckets_base / ((uint32_t)powf(2, depth));
-        uint32_t nBuckets = 16;
-        nBuckets = nBuckets <= 15 ? 16 : nBuckets;
         std::vector<BucketInfo> buckets(nBuckets);
-        //BucketInfo buckets[nBuckets];
         float extent = get_by_idx(centroidBounds.bmax, dim) - get_by_idx(centroidBounds.bmin, dim);
         for(auto i = start; i < end; ++i)
         {
@@ -169,16 +169,7 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
         //either create leaf or split at selected SAH bucket
         if(nPrims > MAX_LEAF_PRIM_NUM || minCost < nPrims)
         {
-            //int b = -1;
-            //auto i = start;
-            //while((i < end) && (b < bestSplit))
-            //{
-            //    b = nBuckets * ((get_by_idx(workList[i].bounds.bcenter, dim) - get_by_idx(centroidBounds.bmin, dim)) / extent);
-            //    if(b == nBuckets) b -= 1;
-            //    mid = i;
-            //    i++;
-            //}
-            auto compare = [=](BVHPrimitiveInfo& p) {
+            auto compare = [&](BVHPrimitiveInfo& p) {
                 auto b = nBuckets * ((get_by_idx(p.bounds.bcenter, dim) - get_by_idx(centroidBounds.bmin, dim)) / extent);
                 b = (b == nBuckets) ? (b - 1) : b;
                 return b <= bestSplit;
@@ -217,8 +208,8 @@ void export_linear_bvh(const BVH& bvh, std::string filename)
 
     for(const auto& item : bvh.lbvh)
     {
-        out<<item.bounds.bmin.x<<' '<<item.bounds.bmin.y<<' '<<item.bounds.bmin.z<<' ';
-        out<<item.bounds.bmax.x<<' '<<item.bounds.bmax.y<<' '<<item.bounds.bmax.z<<' ';
+        out<<item.bMin.x<<' '<<item.bMin.y<<' '<<item.bMin.z<<' ';
+        out<<item.bMax.x<<' '<<item.bMax.y<<' '<<item.bMax.z<<' ';
         out<<item.nPrimitives<<'\n';
     }
 

@@ -21,9 +21,9 @@ public:
 /***************************************************************************
  * Transformation
  ***************************************************************************/
+enum AXIS{AXIS_NONE, AXIS_X, AXIS_Y, AXIS_Z};
 class Transformation
 {
-    enum AXIS{AXIS_NONE, AXIS_X, AXIS_Y, AXIS_Z};
 public:
     Transformation();
     void Scale(const float3& s);

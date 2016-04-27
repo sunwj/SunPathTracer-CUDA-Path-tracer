@@ -49,4 +49,11 @@ void Scene::BuildSceneForGPU(cudaScene &scene)
         checkCudaErrors(cudaMalloc((void**)&(scene.planes), sizeof(cudaPlane) * this->planes.size()));
         checkCudaErrors(cudaMemcpy(scene.planes, this->planes.data(), sizeof(cudaPlane) * this->planes.size(), cudaMemcpyHostToDevice));
     }
+
+    scene.num_meshes = this->meshes.size();
+    if(scene.num_meshes != 0)
+    {
+        checkCudaErrors(cudaMalloc((void**)&(scene.meshes), sizeof(cudaMesh) * this->meshes.size()));
+        checkCudaErrors(cudaMemcpy(scene.meshes, this->meshes.data(), sizeof(cudaMesh) * this->meshes.size(), cudaMemcpyHostToDevice));
+    }
 }

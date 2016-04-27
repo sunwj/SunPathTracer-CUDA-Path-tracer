@@ -55,6 +55,9 @@ public:
 
     unsigned int num_planes;
     cudaPlane* planes;
+
+    unsigned int num_meshes;
+    cudaMesh* meshes;
 };
 
 #endif //SUNPATHTRACER_CUDA_SCENE_H

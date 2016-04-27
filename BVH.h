@@ -5,6 +5,7 @@
 #ifndef SUNPATHTRACER_BVH_H
 #define SUNPATHTRACER_BVH_H
 
+#include "termcolor.hpp"
 #include "ObjMesh.h"
 
 class BBox
@@ -136,16 +137,16 @@ public:
     size_t nPrims;
 };
 
-class LBVHNode
+struct LBVHNode
 {
-public:
     LBVHNode()
     {
         nPrimitives = 0;
         primitiveOffset = 0;
     }
-public:
-    BBox bounds;
+
+    float3 bMax;
+    float3 bMin;
     union {
         uint32_t primitiveOffset;
         uint32_t rightChildOffset;
@@ -168,7 +169,8 @@ public:
     ObjMesh mesh;
     std::vector<BVHPrimitiveInfo> workList;
     std::vector<uint3> orderedPrims;
-    size_t totalNodes = 0;
+    uint32_t totalNodes = 0;
+    uint32_t maxDepth = 0;
     BVHNode* root;
     std::vector<LBVHNode> lbvh;
 };

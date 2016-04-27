@@ -38,6 +38,7 @@ void init()
     renderParams.exposure = 1.0f;
     Scene host_scene;
     //build scene
+    /*
     //camera
     host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 3.0f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f), 15.f));
 
@@ -109,6 +110,7 @@ void init()
     mat6.emition = make_float3(2.f, 2.f, 2.f);
     host_scene.AddMaterial(mat6);
     host_scene.AddAABB(cudaAAB(make_float3(-0.38, 0.78, -0.25), make_float3(0.32, 0.8, 0.25), host_scene.GetLastMaterialID()));
+     */
 
     /*
     //cornell box
@@ -163,9 +165,54 @@ void init()
     mat8.albedo = make_float3(1.00f, 1.00f, 1.00f);
     mat8.ior = 1.5;
     mat8.bsdf_type = BSDF_GLASS;
+    mat8.roughness = 10000;
     host_scene.AddMaterial(mat8);
     host_scene.AddSphere(cudaSphere(make_float3(73.0f, 26.5f, 88.0f), 16.5f, host_scene.GetLastMaterialID()));
     */
+
+    //triangle mesh
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 1.0f, 10.0f), make_float3(0.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), 35.f));
+
+    //ground
+    cudaMaterial mat1;
+    mat1.albedo = make_float3(0.3f, 0.6f, 0.2f);
+    host_scene.AddMaterial(mat1);
+
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), host_scene.GetLastMaterialID()));
+
+    //back
+    cudaMaterial mat4;
+    mat4.albedo = make_float3(0.9f, 0.9f, 0.9f);
+    host_scene.AddMaterial(mat4);
+
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -5.f), make_float3(0.f, 0.f, 1.f), host_scene.GetLastMaterialID()));
+
+    //light
+    cudaMaterial mat2;
+    mat2.albedo = make_float3(1.f);
+    mat2.emition = make_float3(2.f);
+    host_scene.AddMaterial(mat2);
+
+    host_scene.AddSphere(cudaSphere(make_float3(0.f, 5.f, 6.f), 2.5f, host_scene.GetLastMaterialID()));
+
+    //objmesh
+    ObjMesh mesh("ico.obj");
+    Transformation t;
+    t.Scale(2.f / make_float3(length(mesh.vmax - mesh.vmin)));
+    t.Translate(make_float3(0.f, 1.f, 5.f));
+    mesh.ApplyTransform(t);
+    BVH bvh(mesh);
+    export_linear_bvh(bvh, "bvh.bvh");
+
+    cudaMaterial mat3;
+    //mat3.albedo = make_float3(0.8f, 0.14f, 0.14f);
+    mat3.albedo = make_float3(1.f);
+    mat3.bsdf_type = BSDF_GLASS;
+    mat3.ior = 1.5f;
+    mat3.roughness = 9999.f;
+    host_scene.AddMaterial(mat3);
+    host_scene.AddMesh(create_cudaMesh(bvh, host_scene.GetLastMaterialID()));
+
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);
@@ -201,7 +248,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main(int argc, char** argv)
 {
-    /*GLFWwindow* window;
+    GLFWwindow* window;
     if(!glfwInit())
         return -1;
 
@@ -229,15 +276,12 @@ int main(int argc, char** argv)
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    return 0;*/
-
-    Transformation t;
-    ObjMesh mesh("bunny.obj", t);
-    BVH bvh(mesh);
-    std::cout<<"Numer of nodes: "<<bvh.totalNodes<<std::endl;
-    std::cout<<bvh.root->bounds.bmax.x<<", "<<bvh.root->bounds.bmax.y<<", "<<bvh.root->bounds.bmax.z<<std::endl;
-    std::cout<<bvh.root->bounds.bmin.x<<", "<<bvh.root->bounds.bmin.y<<", "<<bvh.root->bounds.bmin.z<<std::endl;
-    export_linear_bvh(bvh, "bvh.bvh");
     return 0;
+
+    //Transformation t;
+    //ObjMesh mesh("buddha.obj");
+    //BVH bvh(mesh);
+    //export_linear_bvh(bvh, "bvh.bvh");
+    //return 0;
 }
 

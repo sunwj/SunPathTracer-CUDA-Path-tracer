@@ -1488,5 +1488,15 @@ inline __device__ __host__ float get_by_idx(const float3& v, int idx)
 
     return t;
 }
+__forceinline__ __device__ __host__ float3 inverse(const float3& v)
+{
+    constexpr float ooeps = 0.00000000000000000000000082718061255302767487140869206996285356581211090087890625f;
+    float3 inv;
+    inv.x = 1.f / ((fabsf(v.x) > ooeps) ? v.x : copysignf(ooeps, v.x));
+    inv.y = 1.f / ((fabsf(v.y) > ooeps) ? v.y : copysignf(ooeps, v.y));
+    inv.z = 1.f / ((fabsf(v.z) > ooeps) ? v.z : copysignf(ooeps, v.z));
+
+    return inv;
+}
 
 #endif

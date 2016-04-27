@@ -17,8 +17,9 @@ class ObjMesh
 {
 public:
     ObjMesh() {}
-    ObjMesh(std::string filename, Transformation& t);
-    void Load(std::string filename, Transformation& t);
+    ObjMesh(std::string filename);
+    void Load(std::string filename);
+    void ApplyTransform(Transformation& t);
 
 public:
     std::vector<float3> vertices;
@@ -26,6 +27,5 @@ public:
     float3 vmax;
     float3 vmin;
 };
-
 
 #endif //SUNPATHTRACER_OBJMESH_H

@@ -43,7 +43,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
     float tmin = FLT_MAX;
 
     float t;
-    for(int i = 0; i < scene.num_spheres; ++i)
+    for(auto i = 0; i < scene.num_spheres; ++i)
     {
         const cudaSphere& sphere = scene.spheres[i];
         if(sphere.Intersect(ray, &t) && (t < tmin))
@@ -58,7 +58,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
         }
     }
 
-    for(int i = 0; i < scene.num_aab; ++i)
+    for(auto i = 0; i < scene.num_aab; ++i)
     {
         const cudaAAB& aab = scene.aab[i];
         if(aab.Intersect(ray, &t) && (t < tmin))
@@ -73,7 +73,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
         }
     }
 
-    for(int i = 0; i < scene.num_planes; ++i)
+    for(auto i = 0; i < scene.num_planes; ++i)
     {
         const cudaPlane& plane = scene.planes[i];
         if(plane.Intersect(ray, &t) && (t < tmin))
@@ -85,6 +85,22 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
             se.pt = ray.PointOnRay(tmin);
             se.normal = plane.GetNormal(se.pt);
             se.matID = plane.material_id;
+        }
+    }
+
+    for(auto i = 0; i < scene.num_meshes; ++i)
+    {
+        const cudaMesh& mesh = scene.meshes[i];
+        int id = -1;
+        if(((id = mesh.Intersect(ray, &t)) >= 0) && t < tmin)
+        {
+            tmin = t;
+            intersected = true;
+
+            se.rayEpsilon = 0.001f * tmin;
+            se.pt = ray.PointOnRay(tmin);
+            se.normal = mesh.GetNormal(id);
+            se.matID = mesh.material_id;
         }
     }
 

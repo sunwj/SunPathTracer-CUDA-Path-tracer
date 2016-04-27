@@ -4,15 +4,15 @@
 
 #include "ObjMesh.h"
 
-ObjMesh::ObjMesh(std::string filename, Transformation& t)
+ObjMesh::ObjMesh(std::string filename)
 {
     vmax = make_float3(-FLT_MAX);
     vmin = make_float3(FLT_MAX);
 
-    Load(filename, t);
+    Load(filename);
 }
 
-void ObjMesh::Load(std::string filename, Transformation& t)
+void ObjMesh::Load(std::string filename)
 {
     std::ifstream input(filename);
     if(!input)
@@ -28,7 +28,6 @@ void ObjMesh::Load(std::string filename, Transformation& t)
         {
             float3 v;
             sscanf(buffer, "v %f %f %f\n", &v.x, &v.y, &v.z);
-            v = t * v;
             vmax = fmaxf(vmax, v);
             vmin = fminf(vmin, v);
             vertices.push_back(v);
@@ -44,6 +43,12 @@ void ObjMesh::Load(std::string filename, Transformation& t)
             continue;
     }
 
+    float3 center = (vmin + vmax) * 0.5f;
+    vmin -= center;
+    vmax -= center;
+    for(auto& item : vertices)
+        item -= center;
+
 #define __PRINT_INFO__
 #ifdef __PRINT_INFO__
     std::cout<<filename<<" load successfully"<<std::endl;
@@ -54,4 +59,17 @@ void ObjMesh::Load(std::string filename, Transformation& t)
         <<"min: ("<<vmin.x<<", "<<vmin.y<<", "<<vmin.z<<")"<<std::endl;
     std::cout<<"Mesh diagnal length: "<<length(vmax - vmin)<<std::endl;
 #endif
+}
+
+void ObjMesh::ApplyTransform(Transformation& t)
+{
+    vmax = make_float3(-FLT_MAX);
+    vmin = make_float3(FLT_MAX);
+
+    for(auto& item : vertices)
+    {
+        item = t * item;
+        vmin = fminf(vmin, item);
+        vmax = fmaxf(vmax, item);
+    }
 }
