@@ -205,7 +205,7 @@ void init()
     host_scene.AddSphere(cudaSphere(make_float3(0.f, 15.f, 15.f), 4.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("sol.obj");
+    ObjMesh mesh("bunny.obj");
     Transformation t;
     t.Scale(10.f / make_float3(length(mesh.vmax - mesh.vmin)));
     t.Translate(make_float3(0.f, 4.6f, 10.f));
@@ -218,7 +218,7 @@ void init()
     //mat3.albedo = make_float3(1.f);
     mat3.bsdf_type = BSDF_PLASTIC;
     mat3.ior = 1.5f;
-    mat3.roughness = 9999.f;
+    mat3.roughness = 15.f;
     host_scene.AddMaterial(mat3);
     host_scene.AddMesh(create_cudaMesh(bvh, host_scene.GetLastMaterialID()));
 
