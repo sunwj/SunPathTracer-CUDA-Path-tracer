@@ -276,30 +276,22 @@ public:
 
         while(stackTop)
         {
-            uint32_t node_id = stack[stackTop--];
+            uint32_t node_id = stack[--stackTop];
 
             LBVHNode node = bvh[node_id];
             //inner node
-            if(node.nPrimitives == 0)
+            if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
             {
-                if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
+                //inner node
+                if(node.nPrimitives == 0)
                 {
-                    //push left child idx
-                    stack[stackTop++] = node_id + 1;
-                    //push right child idx
                     stack[stackTop++] = node.rightChildOffset;
-
-                    if(stackTop >= BVH_STACK_SIZE)
-                    {
-                        return false;
-                    }
+                    stack[stackTop++] = node_id + 1;
+                    if(stackTop >= BVH_STACK_SIZE) return false;
                 }
-            }
-            else //leaf node
-            {
-                if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
+                else //leaf node
                 {
-                    for(auto i = node.primitiveOffset; i < node.nPrimitives; ++i)
+                    for(auto i = node.primitiveOffset; i < (node.primitiveOffset + node.nPrimitives); ++i)
                     {
                         if(cudaTriangle::Intersect(ray, triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2], t) && *t < tmin)
                         {

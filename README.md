@@ -15,5 +15,10 @@
 <img src="./images/4.png"></img>
 <br />
 
+<h3>Triangle mesh support</h3>
+<img src="./images/5.png"></img>
+<img src="./images/6.png"></img>
+<br />
+
 working in progress... <br />
-add triangle mesh support (BVH acceleration)
+optimise BVH

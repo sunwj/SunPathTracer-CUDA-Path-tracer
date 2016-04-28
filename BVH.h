@@ -160,7 +160,7 @@ public:
     BVH(ObjMesh& _mesh);
     ~BVH();
     BVHNode* RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth = 0);
-    uint32_t Flatten(BVHNode* node, float* offset);
+    uint32_t Flatten(BVHNode* node, uint32_t* offset);
 
 private:
     void Delete(BVHNode* node);

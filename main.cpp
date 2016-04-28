@@ -171,7 +171,7 @@ void init()
     */
 
     //triangle mesh
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 1.0f, 10.0f), make_float3(0.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), 35.f));
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 5.0f, 30.0f), make_float3(0.f, 3.f, 0.f), make_float3(0.f, 1.f, 0.f), 35.f));
 
     //ground
     cudaMaterial mat1;
@@ -185,7 +185,16 @@ void init()
     mat4.albedo = make_float3(0.9f, 0.9f, 0.9f);
     host_scene.AddMaterial(mat4);
 
-    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -5.f), make_float3(0.f, 0.f, 1.f), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -10.f), make_float3(0.f, 0.f, 1.f), host_scene.GetLastMaterialID()));
+
+    //left
+    host_scene.AddPlane(cudaPlane(make_float3(-10.f, 0.f, 0.f), make_float3(1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
+
+    //right
+    host_scene.AddPlane(cudaPlane(make_float3(10.f, 0.f, 0.f), make_float3(-1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
+
+    //top
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 20.f, 0.f), make_float3(0.f, -1.f, 0.f), host_scene.GetLastMaterialID()));
 
     //light
     cudaMaterial mat2;
@@ -193,21 +202,21 @@ void init()
     mat2.emition = make_float3(2.f);
     host_scene.AddMaterial(mat2);
 
-    host_scene.AddSphere(cudaSphere(make_float3(0.f, 5.f, 6.f), 2.5f, host_scene.GetLastMaterialID()));
+    host_scene.AddSphere(cudaSphere(make_float3(0.f, 15.f, 15.f), 4.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("ico.obj");
+    ObjMesh mesh("sol.obj");
     Transformation t;
-    //t.Scale(2.f / make_float3(length(mesh.vmax - mesh.vmin)));
-    //t.Translate(make_float3(0.f, 1.f, 5.f));
-    //mesh.ApplyTransform(t);
+    t.Scale(10.f / make_float3(length(mesh.vmax - mesh.vmin)));
+    t.Translate(make_float3(0.f, 4.6f, 10.f));
+    mesh.ApplyTransform(t);
     BVH bvh(mesh);
     export_linear_bvh(bvh, "bvh.bvh");
 
     cudaMaterial mat3;
-    //mat3.albedo = make_float3(0.8f, 0.14f, 0.14f);
-    mat3.albedo = make_float3(1.f);
-    mat3.bsdf_type = BSDF_DIFFUSE;
+    mat3.albedo = make_float3(0.282f, 0.8f, 0.8f);
+    //mat3.albedo = make_float3(1.f);
+    mat3.bsdf_type = BSDF_PLASTIC;
     mat3.ior = 1.5f;
     mat3.roughness = 9999.f;
     host_scene.AddMaterial(mat3);

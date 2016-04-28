@@ -5,7 +5,7 @@
 #include "BVH.h"
 
 #define MIN_LEAF_PRIM_NUM 16
-#define MAX_LEAF_PRIM_NUM 32
+#define MAX_LEAF_PRIM_NUM 16
 
 static constexpr int nBuckets = 16;
 
@@ -32,7 +32,7 @@ BVH::BVH(ObjMesh& _mesh)
     lbvh.reserve(totalNodes);
     for(auto i = 0; i < totalNodes; ++i)
         lbvh.push_back(LBVHNode());
-    float offset = 0;
+    uint32_t offset = 0;
     Flatten(root, &offset);
     std::cout<<"Root max: ("<<lbvh[0].bMax.x<<", "<<lbvh[0].bMax.y<<", "<<lbvh[0].bMax.z<<")"<<std::endl;
     std::cout<<"Root min: ("<<lbvh[0].bMin.x<<", "<<lbvh[0].bMin.y<<", "<<lbvh[0].bMin.z<<")"<<std::endl;
@@ -56,7 +56,7 @@ void BVH::Delete(BVHNode* node)
     delete node;
 }
 
-uint32_t BVH::Flatten(BVHNode *node, float* offset)
+uint32_t BVH::Flatten(BVHNode *node, uint32_t* offset)
 {
     LBVHNode* linearNode = &lbvh[*offset];
     linearNode->bMax = node->bounds.bmax;
@@ -212,6 +212,10 @@ void export_linear_bvh(const BVH& bvh, std::string filename)
     {
         out<<item.bMin.x<<' '<<item.bMin.y<<' '<<item.bMin.z<<' ';
         out<<item.bMax.x<<' '<<item.bMax.y<<' '<<item.bMax.z<<' ';
+        //if(item.nPrimitives == 0)
+        //    out<<item.rightChildOffset<<' ';
+        //else
+        //    out<<-1<<' ';
         out<<item.nPrimitives<<'\n';
     }
 
