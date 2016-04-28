@@ -91,7 +91,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
     for(auto i = 0; i < scene.num_meshes; ++i)
     {
         const cudaMesh& mesh = scene.meshes[i];
-        uint32_t id;
+        int32_t id = -1;
         if(mesh.Intersect(ray, &t, &id) && t < tmin)
         {
             tmin = t;

@@ -40,12 +40,10 @@ void init()
     //build scene
     /*
     //camera
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 0.0f, 3.0f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f), 15.f));
+    host_scene.AddCamera(cudaCamera(make_float3(3.f, 0.0f, 3.0f), make_float3(0.f, 0.0f, 0), make_float3(0.f, 1.f, 0.f), 15.f));
 
     cudaMaterial mat1;
     mat1.albedo = make_float3(0.7f, 0.5f, 0.3f);
-    //mat1.bsdf_type = BSDF_PLASTIC;
-    //mat1.ior = 1.7f;
     host_scene.AddMaterial(mat1);
     //table top
     host_scene.AddAABB(cudaAAB(make_float3(-0.5, -0.35, -0.5), make_float3(0.3, -0.3, 0.5), host_scene.GetLastMaterialID()));
@@ -75,6 +73,7 @@ void init()
     mat2.roughness = 9999.f;
     host_scene.AddMaterial(mat2);
     host_scene.AddSphere(cudaSphere(make_float3(-0.1, 0.12, 0.1), 0.20, host_scene.GetLastMaterialID()));
+    //host_scene.AddAABB(cudaAAB(make_float3(-0.3, -0.13, -0.1), make_float3(0.1, 0.27, 0.3), host_scene.GetLastMaterialID()));
 
     //cudaMaterial mat7;
     //mat7.albedo = make_float3(0.4f, 0.8f, 0.7f);
@@ -110,7 +109,7 @@ void init()
     mat6.emition = make_float3(2.f, 2.f, 2.f);
     host_scene.AddMaterial(mat6);
     host_scene.AddAABB(cudaAAB(make_float3(-0.38, 0.78, -0.25), make_float3(0.32, 0.8, 0.25), host_scene.GetLastMaterialID()));
-     */
+    */
 
     /*
     //cornell box
@@ -171,30 +170,56 @@ void init()
     */
 
     //triangle mesh
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 5.0f, 30.0f), make_float3(0.f, 3.f, 0.f), make_float3(0.f, 1.f, 0.f), 35.f));
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 35.0f, 140.0f), make_float3(0.f, 25.f, 0.f), make_float3(0.f, 1.f, 0.f), 25.f));
 
     //ground
     cudaMaterial mat1;
     mat1.albedo = make_float3(0.3f, 0.6f, 0.2f);
+    mat1.bsdf_type = BSDF_PLASTIC;
     host_scene.AddMaterial(mat1);
 
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 0.f), make_float3(0.f, 1.f, 0.f), host_scene.GetLastMaterialID()));
 
     //back
     cudaMaterial mat4;
-    mat4.albedo = make_float3(0.9f, 0.9f, 0.9f);
+    //mat4.albedo = make_float3(0.9f, 0.3f, 0.3f);
+    mat4.albedo = make_float3(0.9f);
     host_scene.AddMaterial(mat4);
 
-    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -10.f), make_float3(0.f, 0.f, 1.f), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -50.f), make_float3(0.f, 0.f, 1.f), host_scene.GetLastMaterialID()));
+
+    //front
+    cudaMaterial mat8;
+    mat8.albedo = make_float3(1.f);
+    host_scene.AddMaterial(mat8);
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 160.f), make_float3(0.f, 0.f, -1.f), host_scene.GetLastMaterialID()));
 
     //left
-    host_scene.AddPlane(cudaPlane(make_float3(-10.f, 0.f, 0.f), make_float3(1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
+    cudaMaterial mat5;
+    mat5.albedo = make_float3(0.1f, 0.5f, 1.f);
+    host_scene.AddMaterial(mat5);
+    host_scene.AddPlane(cudaPlane(make_float3(-50.f, 0.f, 0.f), make_float3(1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
 
     //right
-    host_scene.AddPlane(cudaPlane(make_float3(10.f, 0.f, 0.f), make_float3(-1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
+    cudaMaterial mat6;
+    mat6.albedo = make_float3(1.0f, .9f, .1f);
+    host_scene.AddMaterial(mat6);
+    host_scene.AddPlane(cudaPlane(make_float3(50.f, 0.f, 0.f), make_float3(-1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
 
     //top
-    host_scene.AddPlane(cudaPlane(make_float3(0.f, 20.f, 0.f), make_float3(0.f, -1.f, 0.f), host_scene.GetLastMaterialID()));
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 100.f, 0.f), make_float3(0.f, -1.f, 0.f), host_scene.GetLastMaterialID()));
+
+    //ball1
+    cudaMaterial mat7;
+    mat7.bsdf_type = BSDF_GLOSSY;
+    //mat7.emition = make_float3(1.f);
+    mat7.ior = 1.5f;
+    //mat7.albedo = make_float3(0.9f, 0.4f, 0.7f);
+    mat7.albedo = make_float3(1.f);
+    mat7.roughness = 99999.f;
+    host_scene.AddMaterial(mat7);
+
+    host_scene.AddSphere(cudaSphere(make_float3(-25.f, 10.f, -6.f), 10.f, host_scene.GetLastMaterialID()));
 
     //light
     cudaMaterial mat2;
@@ -202,26 +227,26 @@ void init()
     mat2.emition = make_float3(2.f);
     host_scene.AddMaterial(mat2);
 
-    host_scene.AddSphere(cudaSphere(make_float3(0.f, 15.f, 15.f), 4.f, host_scene.GetLastMaterialID()));
+    host_scene.AddSphere(cudaSphere(make_float3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("bunny.obj");
+    ObjMesh mesh("dragon-77k.obj");
     Transformation t;
-    t.Scale(10.f / make_float3(length(mesh.vmax - mesh.vmin)));
-    t.Translate(make_float3(0.f, 4.6f, 10.f));
+    t.Scale(50.f / make_float3(length(mesh.vmax - mesh.vmin)));
+    t.Translate(make_float3(0.f, 25.f, 10.f));
     mesh.ApplyTransform(t);
     BVH bvh(mesh);
     export_linear_bvh(bvh, "bvh.bvh");
 
     cudaMaterial mat3;
-    mat3.albedo = make_float3(0.282f, 0.8f, 0.8f);
+    mat3.albedo = make_float3(0.8f, 0.331f, 0.065f);
+    //mat3.albedo = make_float3(0.f, 0.8f, 0.661f);
     //mat3.albedo = make_float3(1.f);
     mat3.bsdf_type = BSDF_PLASTIC;
     mat3.ior = 1.5f;
-    mat3.roughness = 15.f;
+    mat3.roughness = 99999.f;
     host_scene.AddMaterial(mat3);
     host_scene.AddMesh(create_cudaMesh(bvh, host_scene.GetLastMaterialID()));
-
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);
@@ -284,6 +309,7 @@ int main(int argc, char** argv)
     }
     glfwDestroyWindow(window);
     glfwTerminate();
+    cudaDeviceReset();
 
     return 0;
 

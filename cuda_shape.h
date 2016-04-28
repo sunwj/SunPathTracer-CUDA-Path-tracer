@@ -187,10 +187,9 @@ public:
     static __device__ bool Intersect(const cudaRay& ray, const float3& v1, const float3& edge1, const float3& edge2, float* t)
     {
         float3 pvec = cross(ray.dir, edge2);
-        float det = dot(edge1, pvec);
+        float det = dot(pvec, edge1);
 
-        constexpr float eps = 0.0001f;
-        if(fabsf(det) < eps) return false;
+        if(det == 0.f) return false;
 
         float invDet = 1.f / det;
 
@@ -204,6 +203,7 @@ public:
 
         *t = dot(edge2, qvec) * invDet;
 
+        constexpr float eps = 0.0001f;
         return *t > eps;
     }
 
@@ -258,7 +258,7 @@ public:
 /***************************************************************************
  * cudaMesh
  ***************************************************************************/
-#define BVH_STACK_SIZE 64
+#define BVH_STACK_SIZE 32
 class cudaMesh
 {
 public:
@@ -266,9 +266,8 @@ public:
         bvh(_bvh), triangles(_triangles), material_id(_material_id)
     {}
 
-    __device__ bool Intersect(const cudaRay& ray, float* t, uint32_t* id) const
+    __device__ bool Intersect(const cudaRay& ray, float* t, int32_t* id) const
     {
-        bool isIntersected = false;
         float tmin = FLT_MAX;
         int stackTop = 0;
         uint32_t stack[BVH_STACK_SIZE] = {0};
@@ -279,11 +278,10 @@ public:
             uint32_t node_id = stack[--stackTop];
 
             LBVHNode node = bvh[node_id];
-            //inner node
             if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
             {
                 //inner node
-                if(node.nPrimitives == 0)
+                if(node.nPrimitives == 0 && *t < tmin)
                 {
                     stack[stackTop++] = node.rightChildOffset;
                     stack[stackTop++] = node_id + 1;
@@ -293,9 +291,9 @@ public:
                 {
                     for(auto i = node.primitiveOffset; i < (node.primitiveOffset + node.nPrimitives); ++i)
                     {
+                        if(*id == i) continue;
                         if(cudaTriangle::Intersect(ray, triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2], t) && *t < tmin)
                         {
-                            isIntersected = true;
                             tmin = *t;
                             *id = i;
                         }
@@ -305,7 +303,21 @@ public:
         }
 
         *t = tmin;
-        return isIntersected;
+        return *id != -1;
+
+        //****************************************************************************//
+        //float tmin = FLT_MAX;
+        //for(auto i = 0; i < 80; ++i)
+        //{
+        //    if(cudaTriangle::Intersect(ray, triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2], t) && *t < tmin)
+        //    {
+        //        tmin = *t;
+        //        *id = i;
+        //    }
+        //}
+//
+        //*t = tmin;
+        //return *id != -1;
     }
 
     __device__ float3 GetNormal(uint32_t id) const

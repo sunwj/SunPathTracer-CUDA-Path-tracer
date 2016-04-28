@@ -79,6 +79,48 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
             ray->orig = se.pt - nl * se.rayEpsilon;
         }
     }
+
+    /*bool into = dot(ray->dir, se.normal) < 0.f;
+    float3 n = se.normal;
+    float3 nl = into ? n : -n;
+    float nc = 1.f;
+    float nt = 1.5f;
+    float nnt = into ? nc / nt : nt / nc;
+    float ddn = dot(ray->dir, nl);
+    float cos2t = 1.f - nnt * nnt * (1.f - ddn * ddn);
+
+    if(cos2t < 0.f)
+    {
+        ray->dir = reflect(ray->dir, nl);
+        ray->orig = se.pt + nl * se.rayEpsilon;
+    }
+    else
+    {
+        float3 tdir = ray->dir * nnt;
+        tdir -= n * ((into ? 1.f : -1.f) * (ddn * nnt + sqrtf(cos2t)));
+        tdir = normalize(tdir);
+
+        float R0 = (nt - nc)*(nt - nc) / (nt + nc)*(nt + nc);
+        float c = 1.f - (into ? -ddn : dot(tdir, n));
+        float Re = R0 + (1.f - R0) * c * c * c * c * c;
+        float Tr = 1 - Re; // Transmission
+        float P = .25f + .5f * Re;
+        float RP = Re / P;
+        float TP = Tr / (1.f - P);
+
+        if(curand_uniform(&rng) < 0.25)
+        {
+            *T *= RP;
+            ray->dir = reflect(ray->dir, nl);
+            ray->orig = se.pt + nl * se.rayEpsilon;
+        }
+        else
+        {
+            *T *= TP;
+            ray->dir = tdir;
+            ray->orig = se.pt - nl * se.rayEpsilon;
+        }
+    }*/
 }
 
 __device__ void glossy_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)

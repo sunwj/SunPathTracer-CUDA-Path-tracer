@@ -5,7 +5,7 @@
 #include "BVH.h"
 
 #define MIN_LEAF_PRIM_NUM 16
-#define MAX_LEAF_PRIM_NUM 16
+#define MAX_LEAF_PRIM_NUM 32
 
 static constexpr int nBuckets = 16;
 
