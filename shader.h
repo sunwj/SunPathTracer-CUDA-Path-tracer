@@ -58,8 +58,10 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         float3 tdir = eta * ray->dir + nl * (eta * cosin - sqrtf(cost2));
         tdir = normalize(tdir);
 
-        float n1 = (cosin < 0.f) ? 1.f : scene.materials[se.matID].ior;
-        float n2 = (cosin < 0.f) ? scene.materials[se.matID].ior : 1.f;
+        //float n1 = (cosin < 0.f) ? 1.f : scene.materials[se.matID].ior;
+        //float n2 = (cosin < 0.f) ? scene.materials[se.matID].ior : 1.f;
+        float n1 = 1.f;
+        float n2 = scene.materials[se.matID].ior;
         float Pr = fresnel_schlick(n1, n2, cosin);
         float Pt = 1.f - Pr;
         float P = 0.25f + 0.5f * Pr;

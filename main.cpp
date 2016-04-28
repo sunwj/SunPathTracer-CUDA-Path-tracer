@@ -35,7 +35,7 @@ void init()
     checkCudaErrors(cudaMalloc((void**)&(renderParams.hdr_buffer), sizeof(float3) * WIDTH * HEIGHT));
     checkCudaErrors(cudaMemset((void*)renderParams.hdr_buffer, 0, sizeof(float3) * WIDTH * HEIGHT));
 
-    renderParams.exposure = 1.0f;
+    renderParams.exposure = 0.5f;
     Scene host_scene;
     //build scene
     /*
@@ -230,7 +230,7 @@ void init()
     host_scene.AddSphere(cudaSphere(make_float3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("dragon-77k.obj");
+    ObjMesh mesh("monkey.obj");
     Transformation t;
     t.Scale(50.f / make_float3(length(mesh.vmax - mesh.vmin)));
     t.Translate(make_float3(0.f, 25.f, 10.f));
@@ -241,8 +241,8 @@ void init()
     cudaMaterial mat3;
     mat3.albedo = make_float3(0.8f, 0.331f, 0.065f);
     //mat3.albedo = make_float3(0.f, 0.8f, 0.661f);
-    //mat3.albedo = make_float3(1.f);
-    mat3.bsdf_type = BSDF_PLASTIC;
+    mat3.albedo = make_float3(1.f);
+    mat3.bsdf_type = BSDF_GLASS;
     mat3.ior = 1.5f;
     mat3.roughness = 99999.f;
     host_scene.AddMaterial(mat3);

@@ -92,16 +92,12 @@ public:
         float minmax = fminf(fminf(real_max.x, real_max.y), real_max.z);
         float maxmin = fmaxf(fmaxf(real_min.x, real_min.y), real_min.z);
 
-        if(minmax >= maxmin)
+        constexpr float eps = 0.0001f;
+        if((minmax >= maxmin) && (minmax > eps))
         {
-            constexpr float eps = 0.0001f;
-            if(maxmin > eps)
-            {
-                *t = maxmin;
-                return true;
-            }
+            *t = maxmin;
+            return true;
         }
-
         return false;
     }
 
@@ -118,7 +114,7 @@ public:
         float minmax = fminf(fminf(real_max.x, real_max.y), real_max.z);
         float maxmin = fmaxf(fmaxf(real_min.x, real_min.y), real_min.z);
 
-        if(minmax >= maxmin)
+        if((minmax >= maxmin) && (minmax > 0.f))
         {
             *t = maxmin;
             return true;
@@ -195,11 +191,11 @@ public:
 
         float3 tvec = ray.orig - v1;
         float u = dot(tvec, pvec) * invDet;
-        if(u < 0 || u > 1) return false;
+        if(u < 0.f || u > 1.f) return false;
 
         float3 qvec = cross(tvec, edge1);
         float v = dot(ray.dir, qvec) * invDet;
-        if(v < 0 || (u + v) > 1) return false;
+        if(v < 0.f || (u + v) > 1.f) return false;
 
         *t = dot(edge2, qvec) * invDet;
 
