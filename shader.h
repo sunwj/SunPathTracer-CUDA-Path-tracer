@@ -49,7 +49,7 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
 
     if(cost2 < 0.f)
     {
-        *T *= scene.materials[se.matID].albedo;
+        //*T *= scene.materials[se.matID].albedo;
         ray->dir = reflect(ray->dir, nl);
         ray->orig = se.pt + nl * se.rayEpsilon;
     }

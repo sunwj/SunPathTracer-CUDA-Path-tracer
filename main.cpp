@@ -170,7 +170,7 @@ void init()
     */
 
     //triangle mesh
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 35.0f, 140.0f), make_float3(0.f, 25.f, 0.f), make_float3(0.f, 1.f, 0.f), 25.f));
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 35.0f, 140.0f), make_float3(0.f, 25.f, 0.f), make_float3(0.f, 1.f, 0.f), 15.f));
 
     //ground
     cudaMaterial mat1;
@@ -183,16 +183,19 @@ void init()
     //back
     cudaMaterial mat4;
     //mat4.albedo = make_float3(0.9f, 0.3f, 0.3f);
-    mat4.albedo = make_float3(0.9f);
+    mat4.albedo = make_float3(0.5f);
     host_scene.AddMaterial(mat4);
 
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, -50.f), make_float3(0.f, 0.f, 1.f), host_scene.GetLastMaterialID()));
 
     //front
     cudaMaterial mat8;
-    mat8.albedo = make_float3(1.f);
+    mat8.albedo = make_float3(0.8f);
     host_scene.AddMaterial(mat8);
     host_scene.AddPlane(cudaPlane(make_float3(0.f, 0.f, 160.f), make_float3(0.f, 0.f, -1.f), host_scene.GetLastMaterialID()));
+
+    //top
+    host_scene.AddPlane(cudaPlane(make_float3(0.f, 100.f, 0.f), make_float3(0.f, -1.f, 0.f), host_scene.GetLastMaterialID()));
 
     //left
     cudaMaterial mat5;
@@ -205,9 +208,6 @@ void init()
     mat6.albedo = make_float3(1.0f, .9f, .1f);
     host_scene.AddMaterial(mat6);
     host_scene.AddPlane(cudaPlane(make_float3(50.f, 0.f, 0.f), make_float3(-1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
-
-    //top
-    host_scene.AddPlane(cudaPlane(make_float3(0.f, 100.f, 0.f), make_float3(0.f, -1.f, 0.f), host_scene.GetLastMaterialID()));
 
     //ball1
     cudaMaterial mat7;
@@ -230,7 +230,7 @@ void init()
     host_scene.AddSphere(cudaSphere(make_float3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("monkey.obj");
+    ObjMesh mesh("tour.obj");
     Transformation t;
     t.Scale(50.f / make_float3(length(mesh.vmax - mesh.vmin)));
     t.Translate(make_float3(0.f, 25.f, 10.f));
