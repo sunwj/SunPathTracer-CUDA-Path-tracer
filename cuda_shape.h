@@ -7,6 +7,7 @@
 
 #include <float.h>
 
+#include <cuda.h>
 #include <cuda_runtime.h>
 
 #include "helper_cuda.h"
@@ -101,25 +102,58 @@ public:
         return false;
     }
 
-    static __device__ bool Intersect(const cudaRay& ray, const float3& bmin, const float3& bmax, float* t)
+    static __device__ bool Intersect(const cudaRay& ray, const float3& bmin, const float3& bmax, const float3& invRayDir, float* t)
     {
-        float3 invDir = inverse(ray.dir);
-
-        float3 tmin = (bmin - ray.orig) * invDir;
-        float3 tmax = (bmax - ray.orig) * invDir;
-
-        float3 real_min = fminf(tmin, tmax);
-        float3 real_max = fmaxf(tmin, tmax);
-
-        float minmax = fminf(fminf(real_max.x, real_max.y), real_max.z);
-        float maxmin = fmaxf(fmaxf(real_min.x, real_min.y), real_min.z);
-
-        if((minmax >= maxmin) && (minmax > 0.f))
+        float boundmin, boundmax;
+        if(invRayDir.x < 0.f)
         {
-            *t = maxmin;
-            return true;
+            boundmin = bmax.x;
+            boundmax = bmin.x;
         }
-        return false;
+        else
+        {
+            boundmin = bmin.x;
+            boundmax = bmax.x;
+        }
+        float tmin = (boundmin - ray.orig.x) * invRayDir.x;
+        float tmax = (boundmax - ray.orig.x) * invRayDir.x;
+
+        if(invRayDir.y < 0.f)
+        {
+            boundmin = bmax.y;
+            boundmax = bmin.y;
+        }
+        else
+        {
+            boundmin = bmin.y;
+            boundmax = bmax.y;
+        }
+        float tymin = (boundmin - ray.orig.y) * invRayDir.y;
+        float tymax = (boundmax - ray.orig.y) * invRayDir.y;
+
+        if((tmin > tymax) || (tymin > tmax)) return false;
+        tmin = fmaxf(tmin, tymin);
+        tmax = fminf(tmax, tymax);
+
+        if(invRayDir.z < 0.f)
+        {
+            boundmin = bmax.z;
+            boundmax = bmin.z;
+        }
+        else
+        {
+            boundmin = bmin.z;
+            boundmax = bmax.z;
+        }
+        float tzmin = (boundmin - ray.orig.z) * invRayDir.z;
+        float tzmax = (boundmax - ray.orig.z) * invRayDir.z;
+
+        if((tmin > tzmax) || (tzmin > tmax)) return false;
+        tmin = fmaxf(tmin, tzmin);
+        tmax = fminf(tmax, tzmax);
+
+        *t = tmin;
+        return tmin > 0.f;
     }
 
     __device__ float3 GetNormal(const float3& pt) const
@@ -254,16 +288,25 @@ public:
 /***************************************************************************
  * cudaMesh
  ***************************************************************************/
+#ifdef __CUDACC__
+#define TEX_FLOAT4(texobj, texcoord) (tex1D<float4>(texobj, texcoord))
+#else
+#define TEX_FLOAT4(texobj, texcoord) (make_float4(0.f))
+#endif
+
 #define BVH_STACK_SIZE 32
 class cudaMesh
 {
 public:
-    __host__ __device__ cudaMesh(LBVHNode* _bvh, float3* _triangles, unsigned int _material_id):
-        bvh(_bvh), triangles(_triangles), material_id(_material_id)
-    {}
+    __host__ cudaMesh(const BVH& bvh, unsigned int _material_id)
+    {
+        material_id = _material_id;
+        CreateMesh(bvh);
+    }
 
     __device__ bool Intersect(const cudaRay& ray, float* t, int32_t* id) const
     {
+        float3 invRayDir = 1.f / ray.dir;
         float tmin = FLT_MAX;
         int stackTop = 0;
         uint32_t stack[BVH_STACK_SIZE] = {0};
@@ -273,11 +316,12 @@ public:
         {
             uint32_t node_id = stack[--stackTop];
 
-            LBVHNode node = bvh[node_id];
-            if(cudaAAB::Intersect(ray, node.bMin, node.bMax, t))
+            LBVHNode node = bvhNodes[node_id];
+            if(cudaAAB::Intersect(ray, node.bMin, node.bMax, invRayDir, t))
             {
+                if(*t > tmin) continue;
                 //inner node
-                if(node.nPrimitives == 0 && *t < tmin)
+                if(node.nPrimitives == 0)
                 {
                     stack[stackTop++] = node.rightChildOffset;
                     stack[stackTop++] = node_id + 1;
@@ -288,7 +332,10 @@ public:
                     for(auto i = node.primitiveOffset; i < (node.primitiveOffset + node.nPrimitives); ++i)
                     {
                         if(*id == i) continue;
-                        if(cudaTriangle::Intersect(ray, triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2], t) && *t < tmin)
+                        float3 v1 = make_float3(TEX_FLOAT4(triangleTex, i * 4));
+                        float3 e1 = make_float3(TEX_FLOAT4(triangleTex, i * 4 + 1));
+                        float3 e2 = make_float3(TEX_FLOAT4(triangleTex, i * 4 + 2));
+                        if(cudaTriangle::Intersect(ray, v1, e1, e2, t) && *t < tmin)
                         {
                             tmin = *t;
                             *id = i;
@@ -318,39 +365,78 @@ public:
 
     __device__ float3 GetNormal(uint32_t id) const
     {
-        return normalize(cross(triangles[id * 3 + 1], triangles[id * 3 + 2]));
+        return make_float3(TEX_FLOAT4(triangleTex, id * 4 + 3));
+    }
+
+    __host__ void CreateMesh(const BVH& bvh)
+    {
+        std::vector<float4> tri_list;
+        tri_list.reserve(bvh.mesh.faces.size() * 4);
+        for(const auto& face : bvh.mesh.faces)
+        {
+            auto v1 = bvh.mesh.vertices[face.x];
+            auto v2 = bvh.mesh.vertices[face.y];
+            auto v3 = bvh.mesh.vertices[face.z];
+
+            //select best normal
+            auto e1 = v2 - v1;
+            auto e2 = v3 - v2;
+            auto e3 = v1 - v3;
+
+            auto n1 = cross(e1, e2);
+            auto n2 = cross(e2, e3);
+            auto n3 = cross(e3, e1);
+
+            auto l1 = length(n1);
+            auto l2 = length(n2);
+            auto l3 = length(n3);
+
+            float3 n = make_float3(0.f);
+            if ((l1 > l2) && (l1 > l3))
+                n = n1 / l1;
+            else if (l2 > l3)
+                n = n2 / l2;
+            else
+                n = n3 / l3;
+
+            tri_list.push_back(make_float4(v1));
+            tri_list.push_back(make_float4(v2 - v1));
+            tri_list.push_back(make_float4(v3 - v1));
+            tri_list.push_back(make_float4(n));
+        }
+
+        //allocate cudaArray
+        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+        checkCudaErrors(cudaMallocArray(&trianglesArray, &channelDesc, tri_list.size()));
+        checkCudaErrors(cudaMemcpyToArray(trianglesArray, 0, 0, tri_list.data(), sizeof(float4) * tri_list.size(), cudaMemcpyHostToDevice));
+        //specify texture
+        cudaResourceDesc resDesc;
+        memset(&resDesc, 0, sizeof(cudaResourceDesc));
+        resDesc.resType = cudaResourceTypeArray;
+        resDesc.res.array.array = trianglesArray;
+        //specify texture object parameter
+        cudaTextureDesc texDesc;
+        memset(&texDesc, 0, sizeof(cudaTextureDesc));
+        texDesc.addressMode[0] = cudaAddressModeClamp;
+        texDesc.addressMode[1] = cudaAddressModeClamp;
+        texDesc.filterMode = cudaFilterModePoint;
+        texDesc.readMode = cudaReadModeElementType;
+        texDesc.normalizedCoords = false;
+        //create texture object
+        checkCudaErrors(cudaCreateTextureObject(&triangleTex, &resDesc, &texDesc, NULL));
+
+        //copy bvh data
+        checkCudaErrors(cudaMalloc((void**)&(bvhNodes), sizeof(LBVHNode) * bvh.lbvh.size()));
+        checkCudaErrors(cudaMemcpy(bvhNodes, bvh.lbvh.data(), sizeof(LBVHNode) * bvh.lbvh.size(), cudaMemcpyHostToDevice));
     }
 
 public:
-    LBVHNode* bvh;
-    float3* triangles;
+    cudaTextureObject_t triangleTex;
+    LBVHNode* bvhNodes;
     unsigned int material_id;
+
+private:
+    cudaArray* trianglesArray;
 };
-
-inline cudaMesh create_cudaMesh(const BVH& bvh, unsigned int material_id)
-{
-    std::vector<float3> triangles;
-    triangles.reserve(bvh.mesh.faces.size() * 3);
-    for(auto& item : bvh.mesh.faces)
-    {
-        float3 v1 = bvh.mesh.vertices[item.x];
-        float3 v2 = bvh.mesh.vertices[item.y];
-        float3 v3 = bvh.mesh.vertices[item.z];
-
-        triangles.push_back(v1);
-        triangles.push_back(v2 - v1);
-        triangles.push_back(v3 - v1);
-    }
-
-    float3* d_triangles;
-    checkCudaErrors(cudaMalloc((void**)&(d_triangles), sizeof(float3) * triangles.size()));
-    checkCudaErrors(cudaMemcpy(d_triangles, triangles.data(), sizeof(float3) * triangles.size(), cudaMemcpyHostToDevice));
-
-    LBVHNode* d_bvh;
-    checkCudaErrors(cudaMalloc((void**)&(d_bvh), sizeof(LBVHNode) * bvh.lbvh.size()));
-    checkCudaErrors(cudaMemcpy(d_bvh, bvh.lbvh.data(), sizeof(LBVHNode) * bvh.lbvh.size(), cudaMemcpyHostToDevice));
-
-    return cudaMesh(d_bvh, d_triangles, material_id);
-}
 
 #endif //SUNPATHTRACER_SHAPE_H

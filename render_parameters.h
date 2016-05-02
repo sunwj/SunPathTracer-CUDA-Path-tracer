@@ -9,8 +9,8 @@
 
 struct RenderParameters
 {
-    unsigned int iteration_count = 0;
-
+    uint32_t iteration_count = 0;
+    uint32_t rayDepth = 10;
     float exposure = 1.f;
     float3* hdr_buffer;
 };

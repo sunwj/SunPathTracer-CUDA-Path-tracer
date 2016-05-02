@@ -31,8 +31,10 @@ __device__ void diffuse_shading(const cudaScene& scene, SurfaceElement& se, cura
 
 __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
 {
+    //eta = ni / no
     float eta = scene.materials[se.matID].ior;
     float3 nl = se.normal;
+    //out going
     if(dot(se.normal, ray->dir) > 0.f)
     {
         eta = 1.f / eta;
@@ -49,7 +51,7 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
 
     if(cost2 < 0.f)
     {
-        //*T *= scene.materials[se.matID].albedo;
+        *T *= scene.materials[se.matID].albedo;
         ray->dir = reflect(ray->dir, nl);
         ray->orig = se.pt + nl * se.rayEpsilon;
     }
@@ -58,11 +60,20 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         float3 tdir = eta * ray->dir + nl * (eta * cosin - sqrtf(cost2));
         tdir = normalize(tdir);
 
-        //float n1 = (cosin < 0.f) ? 1.f : scene.materials[se.matID].ior;
-        //float n2 = (cosin < 0.f) ? scene.materials[se.matID].ior : 1.f;
-        float n1 = 1.f;
-        float n2 = scene.materials[se.matID].ior;
-        float Pr = fresnel_schlick(n1, n2, cosin);
+        //float ni = 1.f;
+        //float no = scene.materials[se.matID].ior;
+        float ni, no;
+        if(dot(ray->dir, se.normal) < 0.f)
+        {
+            ni = 1.f;
+            no = scene.materials[se.matID].ior;
+        }
+        else
+        {
+            ni = scene.materials[se.matID].ior;
+            no = 1.f;
+        }
+        float Pr = fresnel_schlick(ni, no, cosin);
         float Pt = 1.f - Pr;
         float P = 0.25f + 0.5f * Pr;
 
@@ -75,7 +86,8 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         }
         else
         {
-            *T *= scene.materials[se.matID].albedo;
+            float invEta = no / ni;
+            *T *= scene.materials[se.matID].albedo * invEta * invEta;
             *T *= (Pt / (1.f - P));
             ray->dir = tdir;
             ray->orig = se.pt - nl * se.rayEpsilon;

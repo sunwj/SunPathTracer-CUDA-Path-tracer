@@ -21,9 +21,14 @@ public:
     void Load(std::string filename);
     void ApplyTransform(Transformation& t);
 
+private:
+    void FixNormal();
+
 public:
     std::vector<float3> vertices;
     std::vector<uint3> faces;
+    std::vector<float3> vertex_normals;
+    std::vector<float3> face_normals;
     float3 vmax;
     float3 vmin;
 };

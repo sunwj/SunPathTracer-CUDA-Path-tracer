@@ -4,10 +4,10 @@
 
 #include "BVH.h"
 
-#define MIN_LEAF_PRIM_NUM 16
-#define MAX_LEAF_PRIM_NUM 32
+#define MIN_LEAF_PRIM_NUM 4
+#define MAX_LEAF_PRIM_NUM 8
 
-static constexpr int nBuckets = 16;
+static constexpr uint32_t nBuckets = 16;
 
 BVH::BVH(ObjMesh& _mesh)
 {
@@ -79,7 +79,7 @@ uint32_t BVH::Flatten(BVHNode *node, uint32_t* offset)
 
 BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
 {
-    maxDepth = maxDepth < depth ? depth : maxDepth;
+    maxDepth = max(depth, maxDepth);
     totalNodes++;
     BVHNode* node = new BVHNode;
 
@@ -90,7 +90,7 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
 
     uint32_t nPrims = end - start;
     //if number of primitives are less than threshold, create leaf node
-    if(nPrims <= MIN_LEAF_PRIM_NUM)
+    if(nPrims <= MAX_LEAF_PRIM_NUM)
     {
         uint32_t firstPrimOffset = orderedPrims.size();
         for(auto i = start; i < end; ++i)
@@ -129,7 +129,7 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
         float extent = get_by_idx(centroidBounds.bmax, dim) - get_by_idx(centroidBounds.bmin, dim);
         for(auto i = start; i < end; ++i)
         {
-            int b = nBuckets * ((get_by_idx(workList[i].bounds.bcenter, dim) - get_by_idx(centroidBounds.bmin, dim)) / extent);
+            uint32_t b = nBuckets * ((get_by_idx(workList[i].bounds.bcenter, dim) - get_by_idx(centroidBounds.bmin, dim)) / extent);
             if(b == nBuckets) b -= 1;
             buckets[b].count++;
             buckets[b].bounds = Union(buckets[b].bounds, workList[i].bounds);

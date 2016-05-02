@@ -170,7 +170,7 @@ void init()
     */
 
     //triangle mesh
-    host_scene.AddCamera(cudaCamera(make_float3(0.f, 35.0f, 140.0f), make_float3(0.f, 25.f, 0.f), make_float3(0.f, 1.f, 0.f), 15.f));
+    host_scene.AddCamera(cudaCamera(make_float3(0.f, 35.0f, 140.0f), make_float3(0.f, 25.f, 0.f), make_float3(0.f, 1.f, 0.f), 35.f));
 
     //ground
     cudaMaterial mat1;
@@ -199,20 +199,21 @@ void init()
 
     //left
     cudaMaterial mat5;
-    mat5.albedo = make_float3(0.1f, 0.5f, 1.f);
+    //mat5.albedo = make_float3(0.1f, 0.5f, 1.f);
+    mat5.albedo = make_float3(0.5f);
     host_scene.AddMaterial(mat5);
     host_scene.AddPlane(cudaPlane(make_float3(-50.f, 0.f, 0.f), make_float3(1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
 
     //right
     cudaMaterial mat6;
-    mat6.albedo = make_float3(1.0f, .9f, .1f);
+    //mat6.albedo = make_float3(1.0f, .9f, .1f);
+    mat6.albedo = make_float3(0.5f);
     host_scene.AddMaterial(mat6);
     host_scene.AddPlane(cudaPlane(make_float3(50.f, 0.f, 0.f), make_float3(-1.f, 0.f, 0.f), host_scene.GetLastMaterialID()));
 
     //ball1
     cudaMaterial mat7;
-    mat7.bsdf_type = BSDF_GLOSSY;
-    //mat7.emition = make_float3(1.f);
+    mat7.bsdf_type = BSDF_GLASS;
     mat7.ior = 1.5f;
     //mat7.albedo = make_float3(0.9f, 0.4f, 0.7f);
     mat7.albedo = make_float3(1.f);
@@ -230,7 +231,7 @@ void init()
     host_scene.AddSphere(cudaSphere(make_float3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("tour.obj");
+    ObjMesh mesh("monkey.obj");
     Transformation t;
     t.Scale(50.f / make_float3(length(mesh.vmax - mesh.vmin)));
     t.Translate(make_float3(0.f, 25.f, 10.f));
@@ -239,14 +240,14 @@ void init()
     export_linear_bvh(bvh, "bvh.bvh");
 
     cudaMaterial mat3;
-    mat3.albedo = make_float3(0.8f, 0.331f, 0.065f);
-    //mat3.albedo = make_float3(0.f, 0.8f, 0.661f);
-    mat3.albedo = make_float3(1.f);
+    //mat3.albedo = make_float3(0.8f, 0.331f, 0.065f);
+    mat3.albedo = make_float3(0.f, 0.8f, 0.661f);
+    //mat3.albedo = make_float3(1.f);
     mat3.bsdf_type = BSDF_GLASS;
-    mat3.ior = 1.5f;
-    mat3.roughness = 99999.f;
+    mat3.ior = 1.6f;
+    mat3.roughness = 999999.f;
     host_scene.AddMaterial(mat3);
-    host_scene.AddMesh(create_cudaMesh(bvh, host_scene.GetLastMaterialID()));
+    host_scene.AddMesh(cudaMesh(bvh, host_scene.GetLastMaterialID()));
 
     //copy host scene to device scene
     host_scene.BuildSceneForGPU(device_scene);
@@ -261,11 +262,20 @@ void render()
     checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&img, &size, resource));
 
     //todo: add rendering function call
+    cudaEvent_t start, end;
+    cudaEventCreate(&start);
+    cudaEventCreate(&end);
+    cudaEventRecord(start);
     for(auto i = 0; i < 5; ++i)
     {
         test(img, device_scene, renderParams);
         renderParams.iteration_count++;
     }
+    cudaEventRecord(end);
+    cudaEventSynchronize(end);
+    float ellapsed = 0;
+    cudaEventElapsedTime(&ellapsed, start, end);
+    std::cout<<"IPS: "<<1000.f / (ellapsed / 5.f)<<std::endl;
 
     checkCudaErrors(cudaGraphicsUnmapResources(1, &resource));
 

@@ -30,7 +30,7 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
 
     SurfaceElement se;
     //todo: add russian roulette
-    for(auto k = 0; k < 10; ++k)
+    for(auto k = 0; k < params.rayDepth; ++k)
     {
         if(!scene_intersect(scene, ray, se)) break;
         L += T * scene.materials[se.matID].emition;
@@ -56,7 +56,7 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
         //russian roulette
         if(k >= 3)
         {
-            float p = fmaxf(T.x, fmaxf(T.y, T.z));
+            float p = (T.x + T.y + T.z) * 0.33333333f;
             if(curand_uniform(&rng) > p) break;
             T /= p;
         }

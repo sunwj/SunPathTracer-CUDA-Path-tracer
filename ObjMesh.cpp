@@ -21,6 +21,11 @@ void ObjMesh::Load(std::string filename)
         exit(-1);
     }
 
+    vertices.clear();
+    faces.clear();
+    vertex_normals.clear();
+    face_normals.clear();
+
     char buffer[1024] = {0};
     while(input.getline(buffer, 1024))
     {
@@ -43,11 +48,15 @@ void ObjMesh::Load(std::string filename)
             continue;
     }
 
+    //translate mesh center into local coordinate's origin
     float3 center = (vmin + vmax) * 0.5f;
     vmin -= center;
     vmax -= center;
     for(auto& item : vertices)
         item -= center;
+
+    //fix normal
+    FixNormal();
 
 #define __PRINT_INFO__
 #ifdef __PRINT_INFO__
@@ -59,6 +68,53 @@ void ObjMesh::Load(std::string filename)
         <<"min: ("<<vmin.x<<", "<<vmin.y<<", "<<vmin.z<<")"<<std::endl;
     std::cout<<"Mesh diagnal length: "<<length(vmax - vmin)<<std::endl;
 #endif
+}
+
+void ObjMesh::FixNormal()
+{
+    vertex_normals.reserve(vertices.size());
+    face_normals.reserve(faces.size());
+
+    for(auto& normal : vertex_normals)
+        normal = make_float3(0.f);
+
+    for(const auto& face : faces) {
+        auto v1 = vertices[face.x];
+        auto v2 = vertices[face.y];
+        auto v3 = vertices[face.z];
+
+        //select best normal
+        auto e1 = v2 - v1;
+        auto e2 = v3 - v2;
+        auto e3 = v1 - v3;
+
+        auto n1 = cross(e1, e2);
+        auto n2 = cross(e2, e3);
+        auto n3 = cross(e3, e1);
+
+        auto l1 = length(n1);
+        auto l2 = length(n2);
+        auto l3 = length(n3);
+
+        float3 n = make_float3(0.f);
+        if ((l1 > l2) && (l1 > l3))
+            n = n1 / l1;
+        else if (l2 > l3)
+            n = n2 / l2;
+        else
+            n = n3 / l3;
+
+        face_normals.push_back(n);
+
+        //add best normal to the face corresponding vertices
+        vertex_normals[face.x] += n;
+        vertex_normals[face.y] += n;
+        vertex_normals[face.z] += n;
+
+        //average vertice normal
+        for (auto &normal : vertex_normals)
+            normal = normalize(normal);
+    }
 }
 
 void ObjMesh::ApplyTransform(Transformation& t)
