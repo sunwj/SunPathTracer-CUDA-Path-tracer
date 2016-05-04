@@ -12,6 +12,7 @@
 #include "cuda_camera.h"
 #include "cuda_shape.h"
 #include "cuda_scene.h"
+#include "cuda_environment_light.h"
 
 class Scene
 {
@@ -24,6 +25,11 @@ public:
         this->camera = camera;
     }
 
+    void AddEnvLight(const cudaEnvironmentLight& env_light)
+    {
+        this->env_light = env_light;
+    }
+
     void AddMaterial(const cudaMaterial& material)
     {
         this->materials.push_back(material);
@@ -34,7 +40,7 @@ public:
         this->spheres.push_back(sphere);
     }
 
-    void AddAABB(const cudaAAB& aab)
+    void AddAAB(const cudaAAB& aab)
     {
         this->aab.push_back(aab);
     }
@@ -51,12 +57,14 @@ public:
 
     unsigned int GetLastMaterialID(void) {return this->materials.size() - 1;}
 
-    //todo: add build scene
     void BuildSceneForGPU(cudaScene& scene);
 
 public:
     //camera
     cudaCamera camera;
+
+    //environment light
+    cudaEnvironmentLight env_light;
 
     //material
     std::vector<cudaMaterial> materials;

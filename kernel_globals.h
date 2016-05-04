@@ -81,7 +81,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
             tmin = t;
             intersected = true;
 
-            se.rayEpsilon = 0.0005f * tmin;
+            se.rayEpsilon = 0.001f * tmin;
             se.pt = ray.PointOnRay(tmin);
             se.normal = plane.GetNormal(se.pt);
             se.matID = plane.material_id;
@@ -97,7 +97,7 @@ __device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, Surf
             tmin = t;
             intersected = true;
 
-            se.rayEpsilon = 0.001f * tmin;
+            se.rayEpsilon = 0.0005f * tmin;
             se.pt = ray.PointOnRay(tmin);
             se.normal = mesh.GetNormal(id);
             se.matID = mesh.material_id;

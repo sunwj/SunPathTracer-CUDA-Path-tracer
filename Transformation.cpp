@@ -52,6 +52,20 @@ Transformation::Transformation()
 
 }
 
+void Transformation::LoadIdentity()
+{
+    for(int i = 0; i < 4; ++i)
+    {
+        for(int j = 0; j < 4; ++j)
+        {
+            if(i == j)
+                mat(i, j) = 1.f;
+            else
+                mat(i, j) = 0.f;
+        }
+    }
+}
+
 void Transformation::Scale(const float3& s)
 {
     mat(0, 0) *= s.x;

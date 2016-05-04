@@ -26,6 +26,7 @@ class Transformation
 {
 public:
     Transformation();
+    void LoadIdentity();
     void Scale(const float3& s);
     void Translate(const float3& t);
     void Rotate(float r, AXIS axis);

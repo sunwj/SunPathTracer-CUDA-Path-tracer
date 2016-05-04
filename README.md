@@ -20,5 +20,8 @@
 <img src="./images/6.png"></img>
 <br />
 
+<h3>Add IBL</h3>
+<img src="./images/7.png"></img>
+<br />
+
 working in progress... <br />
-optimise BVH

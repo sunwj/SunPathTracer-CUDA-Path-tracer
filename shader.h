@@ -23,8 +23,8 @@ __inline__ __device__ float fresnel_schlick(float ni, float no, float cosin)
 __device__ void diffuse_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
 {
     float3 nl = (dot(se.normal, ray->dir) < 0.f) ? se.normal : -se.normal;
-    ray->orig = se.pt + nl * se.rayEpsilon;
     ray->dir = cosine_weightd_sample_hemisphere(rng, nl);
+    ray->orig = se.pt + ray->dir * se.rayEpsilon;
 
     *T *= scene.materials[se.matID].albedo;
 }
@@ -51,17 +51,14 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
 
     if(cost2 < 0.f)
     {
-        *T *= scene.materials[se.matID].albedo;
+        //*T *= scene.materials[se.matID].albedo;
         ray->dir = reflect(ray->dir, nl);
-        ray->orig = se.pt + nl * se.rayEpsilon;
     }
     else
     {
         float3 tdir = eta * ray->dir + nl * (eta * cosin - sqrtf(cost2));
         tdir = normalize(tdir);
 
-        //float ni = 1.f;
-        //float no = scene.materials[se.matID].ior;
         float ni, no;
         if(dot(ray->dir, se.normal) < 0.f)
         {
@@ -82,7 +79,6 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
             *T *= scene.materials[se.matID].albedo;
             *T *= (Pr / P);
             ray->dir = reflect(ray->dir, nl);
-            ray->orig = se.pt + nl * se.rayEpsilon;
         }
         else
         {
@@ -90,8 +86,9 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
             *T *= scene.materials[se.matID].albedo * invEta * invEta;
             *T *= (Pt / (1.f - P));
             ray->dir = tdir;
-            ray->orig = se.pt - nl * se.rayEpsilon;
         }
+
+        ray->orig = se.pt + ray->dir * se.rayEpsilon;
     }
 
     /*bool into = dot(ray->dir, se.normal) < 0.f;
@@ -140,11 +137,11 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
 __device__ void glossy_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
 {
     float3 nl = (dot(se.normal, ray->dir) < 0.f) ? se.normal : -se.normal;
-    ray->orig = se.pt + nl * se.rayEpsilon;
     if(scene.materials[se.matID].roughness < ROUGH_THRESHOLD)
         ray->dir = sample_phong(rng, scene.materials[se.matID].roughness, reflect(ray->dir, nl));
     else
         ray->dir = reflect(ray->dir, nl);
+    ray->orig = se.pt + ray->dir * se.rayEpsilon;
 
     *T *= scene.materials[se.matID].albedo;
 }
@@ -157,7 +154,6 @@ __device__ void coat_shading(const cudaScene& scene, SurfaceElement& se, curandS
     float Pd = 1.f - Pr;
     float P = 0.25f + Pr * 0.5f;
 
-    ray->orig = se.pt + nl * se.rayEpsilon;
     if(P < curand_uniform(&rng))
     {
         ray->dir = cosine_weightd_sample_hemisphere(rng, nl);
@@ -166,10 +162,14 @@ __device__ void coat_shading(const cudaScene& scene, SurfaceElement& se, curandS
     }
     else
     {
-        ray->dir = reflect(ray->dir, nl);
+        if(scene.materials[se.matID].roughness < ROUGH_THRESHOLD)
+            ray->dir = sample_phong(rng, scene.materials[se.matID].roughness, reflect(ray->dir, nl));
+        else
+            ray->dir = reflect(ray->dir, nl);
         *T *= scene.materials[se.matID].specular;
         *T *= (Pr / P);
     }
+    ray->orig = se.pt + ray->dir * se.rayEpsilon;
 }
 
 #endif //SUNPATHTRACER_SHADER_H

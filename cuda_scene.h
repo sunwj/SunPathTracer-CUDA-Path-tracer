@@ -10,6 +10,7 @@
 #include "helper_cuda.h"
 #include "cuda_shape.h"
 #include "cuda_material.h"
+#include "cuda_environment_light.h"
 
 class cudaScene
 {
@@ -41,6 +42,9 @@ public:
 public:
     //camera
     cudaCamera camera;
+
+    //environment
+    cudaEnvironmentLight env_light;
 
     //materials
     unsigned int num_materials;

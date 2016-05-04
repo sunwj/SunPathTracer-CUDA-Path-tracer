@@ -153,8 +153,28 @@ public:
         tmax = fminf(tmax, tzmax);
 
         *t = tmin;
-        return tmin > 0.f;
+        return tmax > 0.f;
     }
+
+    /*static __device__ bool Intersect(const cudaRay& ray, const float3& bmin, const float3& bmax, const float3& invRayDir, float* t)
+    {
+        float3 tmin = (bmin - ray.orig) * invRayDir;
+        float3 tmax = (bmax - ray.orig) * invRayDir;
+
+        float3 real_min = fminf(tmin, tmax);
+        float3 real_max = fmaxf(tmin, tmax);
+
+        float minmax = fminf(fminf(real_max.x, real_max.y), real_max.z);
+        float maxmin = fmaxf(fmaxf(real_min.x, real_min.y), real_min.z);
+
+        constexpr float eps = 0.0001f;
+        if((minmax >= maxmin) && (minmax > eps))
+        {
+            *t = maxmin;
+            return true;
+        }
+        return false;
+    }*/
 
     __device__ float3 GetNormal(const float3& pt) const
     {
@@ -196,18 +216,18 @@ public:
         float3 pvec = cross(ray.dir, edge2);
         float det = dot(pvec, edge1);
 
-        constexpr float eps = 0.0001f;
+        constexpr float eps = 1e-7;
         if(fabsf(det) < eps) return false;
 
         float invDet = 1.f / det;
 
         float3 tvec = ray.orig - v1;
         float u = dot(tvec, pvec) * invDet;
-        if(u < 0 || u > 1) return false;
+        if(u + eps < 0.f || u - eps > 1.f) return false;
 
         float3 qvec = cross(tvec, edge1);
         float v = dot(ray.dir, qvec) * invDet;
-        if(v < 0 || (u + v) > 1) return false;
+        if(v + eps < 0.f || (u + v) - eps > 1.f) return false;
 
         *t = dot(edge2, qvec) * invDet;
 
@@ -219,7 +239,8 @@ public:
         float3 pvec = cross(ray.dir, edge2);
         float det = dot(pvec, edge1);
 
-        if(det == 0.f) return false;
+        constexpr float eps = 1e-7;
+        if(fabsf(det) < eps) return false;
 
         float invDet = 1.f / det;
 
@@ -233,7 +254,6 @@ public:
 
         *t = dot(edge2, qvec) * invDet;
 
-        constexpr float eps = 0.0001f;
         return *t > eps;
     }
 
@@ -290,8 +310,10 @@ public:
  ***************************************************************************/
 #ifdef __CUDACC__
 #define TEX_FLOAT4(texobj, texcoord) (tex1D<float4>(texobj, texcoord))
+#define TEX_FETCH_FLOAT4(texobj, texcoord) (tex1Dfetch<float4>(texobj, texcoord))
 #else
 #define TEX_FLOAT4(texobj, texcoord) (make_float4(0.f))
+#define TEX_FETCH_FLOAT4(texobj, texcoord) (make_float4(0.f))
 #endif
 
 #define BVH_STACK_SIZE 32
@@ -307,6 +329,7 @@ public:
     __device__ bool Intersect(const cudaRay& ray, float* t, int32_t* id) const
     {
         float3 invRayDir = 1.f / ray.dir;
+        //float3 invRayDir = inverse(ray.dir);
         float tmin = FLT_MAX;
         int stackTop = 0;
         uint32_t stack[BVH_STACK_SIZE] = {0};
@@ -332,9 +355,9 @@ public:
                     for(auto i = node.primitiveOffset; i < (node.primitiveOffset + node.nPrimitives); ++i)
                     {
                         if(*id == i) continue;
-                        float3 v1 = make_float3(TEX_FLOAT4(triangleTex, i * 4));
-                        float3 e1 = make_float3(TEX_FLOAT4(triangleTex, i * 4 + 1));
-                        float3 e2 = make_float3(TEX_FLOAT4(triangleTex, i * 4 + 2));
+                        float3 v1 = make_float3(TEX_FETCH_FLOAT4(triangleTex, i * 4));
+                        float3 e1 = make_float3(TEX_FETCH_FLOAT4(triangleTex, i * 4 + 1));
+                        float3 e2 = make_float3(TEX_FETCH_FLOAT4(triangleTex, i * 4 + 2));
                         if(cudaTriangle::Intersect(ray, v1, e1, e2, t) && *t < tmin)
                         {
                             tmin = *t;
@@ -365,7 +388,7 @@ public:
 
     __device__ float3 GetNormal(uint32_t id) const
     {
-        return make_float3(TEX_FLOAT4(triangleTex, id * 4 + 3));
+        return make_float3(TEX_FETCH_FLOAT4(triangleTex, id * 4 + 3));
     }
 
     __host__ void CreateMesh(const BVH& bvh)
@@ -405,15 +428,27 @@ public:
             tri_list.push_back(make_float4(n));
         }
 
+        std::cout<<tri_list.size()<<std::endl;
         //allocate cudaArray
-        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
-        checkCudaErrors(cudaMallocArray(&trianglesArray, &channelDesc, tri_list.size()));
-        checkCudaErrors(cudaMemcpyToArray(trianglesArray, 0, 0, tri_list.data(), sizeof(float4) * tri_list.size(), cudaMemcpyHostToDevice));
+        //cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+        //checkCudaErrors(cudaMallocArray(&trianglesArray, &channelDesc, tri_list.size()));
+        //checkCudaErrors(cudaMemcpyToArray(trianglesArray, 0, 0, tri_list.data(), sizeof(float4) * tri_list.size(), cudaMemcpyHostToDevice));
+        //allocate buffer
+        checkCudaErrors(cudaMalloc((void**)&triangleBuffer, sizeof(float4) * tri_list.size()));
+        checkCudaErrors(cudaMemcpy(triangleBuffer, tri_list.data(), sizeof(float4) * tri_list.size(), cudaMemcpyHostToDevice));
         //specify texture
         cudaResourceDesc resDesc;
         memset(&resDesc, 0, sizeof(cudaResourceDesc));
-        resDesc.resType = cudaResourceTypeArray;
-        resDesc.res.array.array = trianglesArray;
+        //resDesc.resType = cudaResourceTypeArray;
+        //resDesc.res.array.array = trianglesArray;
+        resDesc.resType = cudaResourceTypeLinear;
+        resDesc.res.linear.devPtr = triangleBuffer;
+        resDesc.res.linear.desc.f = cudaChannelFormatKindFloat;
+        resDesc.res.linear.desc.x = 32;
+        resDesc.res.linear.desc.y = 32;
+        resDesc.res.linear.desc.z = 32;
+        resDesc.res.linear.desc.w = 32;
+        resDesc.res.linear.sizeInBytes = sizeof(float4) * tri_list.size();
         //specify texture object parameter
         cudaTextureDesc texDesc;
         memset(&texDesc, 0, sizeof(cudaTextureDesc));
@@ -436,7 +471,8 @@ public:
     unsigned int material_id;
 
 private:
-    cudaArray* trianglesArray;
+    //cudaArray* trianglesArray;
+    float* triangleBuffer;
 };
 
 #endif //SUNPATHTRACER_SHAPE_H

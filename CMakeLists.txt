@@ -20,7 +20,7 @@ include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLFW_INCLUDE_DIRS})
 
 set(CUDA_SOURCES pathtracer.cu)
-set(SOURCE_FILES main.cpp Scene.cpp ObjMesh.cpp Transformation.cpp BVH.cpp)
+set(SOURCE_FILES main.cpp Scene.cpp ObjMesh.cpp Transformation.cpp BVH.cpp utils.cpp)
 
 cuda_compile(CUDA_OBJS ${CUDA_SOURCES})
 

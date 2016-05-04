@@ -29,10 +29,14 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
     float3 T = make_float3(1.f, 1.f, 1.f);
 
     SurfaceElement se;
-    //todo: add russian roulette
     for(auto k = 0; k < params.rayDepth; ++k)
     {
-        if(!scene_intersect(scene, ray, se)) break;
+        if(!scene_intersect(scene, ray, se))
+        {
+            L += T * scene.env_light.GetEnvRadiance(ray.dir, 0.6);
+            break;
+        }
+
         L += T * scene.materials[se.matID].emition;
 
         switch(scene.materials[se.matID].bsdf_type)

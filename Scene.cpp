@@ -20,6 +20,9 @@ void Scene::BuildSceneForGPU(cudaScene &scene)
     //copy camera
     scene.camera = this->camera;
 
+    //copy environment light
+    scene.env_light = this->env_light;
+
     //copy materials
     scene.num_materials = this->materials.size();
     if(scene.num_materials != 0)
