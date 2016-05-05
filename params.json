@@ -1,0 +1,6 @@
+{
+  "name": "SunPathTracer",
+  "tagline": "CUDA based path tracer",
+  "body": "<h1>A CUDA based path tracer</h1>\r\n<h3>Diffuse shading</h3>\r\n<img src=\"./images/1.png\"></img>\r\n<br />\r\n\r\n<h3>Refractive shading</h3>\r\n<img src=\"./images/2.png\"></img>\r\n<br />\r\n\r\n<h3>Glossy shading</h3>\r\n<img src=\"./images/3.png\"></img>\r\n<br />\r\n\r\n<h3>Smooth layered shading</h3>\r\n<img src=\"./images/4.png\"></img>\r\n<br />\r\n\r\n<h3>Triangle mesh support</h3>\r\n<img src=\"./images/5.png\"></img>\r\n<img src=\"./images/6.png\"></img>\r\n<br />\r\n\r\n<h3>Add IBL</h3>\r\n<img src=\"./images/7.png\"></img>\r\n<br />\r\n\r\nworking in progress... <br />\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
