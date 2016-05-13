@@ -132,8 +132,8 @@ public:
         float tymax = (boundmax - ray.orig.y) * invRayDir.y;
 
         if((tmin > tymax) || (tymin > tmax)) return false;
-        tmin = fmaxf(tmin, tymin);
-        tmax = fminf(tmax, tymax);
+        tmin = fmaxf(tymin, tmin);
+        tmax = fminf(tymax, tmax);
 
         if(invRayDir.z < 0.f)
         {
@@ -149,8 +149,8 @@ public:
         float tzmax = (boundmax - ray.orig.z) * invRayDir.z;
 
         if((tmin > tzmax) || (tzmin > tmax)) return false;
-        tmin = fmaxf(tmin, tzmin);
-        tmax = fminf(tmax, tzmax);
+        tmin = fmaxf(tzmin, tmin);
+        tmax = fminf(tzmax, tmax);
 
         *t = tmin;
         return tmax > 0.f;
