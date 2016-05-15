@@ -3,6 +3,9 @@
 //
 
 #include <iostream>
+
+#include <glm/glm.hpp>
+
 #include "utils.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -12,6 +15,11 @@ cudaTextureObject_t create_environment_light_texture(const std::string& filename
 {
     int w = 0, h = 0, n = 0;
     float* data = stbi_loadf(filename.c_str(), &w, &h, &n, 0);
+    if(!data)
+    {
+        std::cerr<<"Unable to load environment map: "<<filename<<std::endl;
+        exit(0);
+    }
 
     //create channel desc
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();

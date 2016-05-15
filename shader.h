@@ -5,6 +5,9 @@
 #ifndef SUNPATHTRACER_SHADER_H
 #define SUNPATHTRACER_SHADER_H
 
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
 #include <cuda_runtime.h>
 
 #include "cuda_scene.h"
@@ -20,22 +23,22 @@ __inline__ __device__ float fresnel_schlick(float ni, float no, float cosin)
     return R0 + (1.f - R0) * c * c * c * c * c;
 }
 
-__device__ void diffuse_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
+__device__ void diffuse_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, glm::vec3* T)
 {
-    float3 nl = (dot(se.normal, ray->dir) < 0.f) ? se.normal : -se.normal;
+    glm::vec3 nl = (glm::dot(se.normal, ray->dir) < 0.f) ? se.normal : -se.normal;
     ray->dir = cosine_weightd_sample_hemisphere(rng, nl);
     ray->orig = se.pt + ray->dir * se.rayEpsilon;
 
     *T *= scene.materials[se.matID].albedo;
 }
 
-__device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
+__device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, glm::vec3* T)
 {
     //eta = ni / no
     float eta = scene.materials[se.matID].ior;
-    float3 nl = se.normal;
+    glm::vec3 nl = se.normal;
     //out going
-    if(dot(se.normal, ray->dir) > 0.f)
+    if(glm::dot(se.normal, ray->dir) > 0.f)
     {
         eta = 1.f / eta;
         nl = -se.normal;
@@ -46,21 +49,21 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
             nl = sample_phong(rng, scene.materials[se.matID].roughness, nl);
     }
     eta = 1.f / eta;
-    float cosin = -dot(nl, ray->dir);
+    float cosin = -glm::dot(nl, ray->dir);
     float cost2 = 1.f - eta * eta * (1.f - cosin * cosin);
 
     if(cost2 < 0.f)
     {
         //*T *= scene.materials[se.matID].albedo;
-        ray->dir = reflect(ray->dir, nl);
+        ray->dir = glm::reflect(ray->dir, nl);
     }
     else
     {
-        float3 tdir = eta * ray->dir + nl * (eta * cosin - sqrtf(cost2));
-        tdir = normalize(tdir);
+        glm::vec3 tdir = eta * ray->dir + nl * (eta * cosin - sqrtf(cost2));
+        tdir = glm::normalize(tdir);
 
         float ni, no;
-        if(dot(ray->dir, se.normal) < 0.f)
+        if(glm::dot(ray->dir, se.normal) < 0.f)
         {
             ni = 1.f;
             no = scene.materials[se.matID].ior;
@@ -78,7 +81,7 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         {
             *T *= scene.materials[se.matID].albedo;
             *T *= (Pr / P);
-            ray->dir = reflect(ray->dir, nl);
+            ray->dir = glm::reflect(ray->dir, nl);
         }
         else
         {
@@ -91,28 +94,28 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         ray->orig = se.pt + ray->dir * se.rayEpsilon;
     }
 
-    /*bool into = dot(ray->dir, se.normal) < 0.f;
-    float3 n = se.normal;
-    float3 nl = into ? n : -n;
+    /*bool into = glm::dot(ray->dir, se.normal) < 0.f;
+    glm::vec3 n = se.normal;
+    glm::vec3 nl = into ? n : -n;
     float nc = 1.f;
     float nt = 1.5f;
     float nnt = into ? nc / nt : nt / nc;
-    float ddn = dot(ray->dir, nl);
+    float ddn = glm::dot(ray->dir, nl);
     float cos2t = 1.f - nnt * nnt * (1.f - ddn * ddn);
 
     if(cos2t < 0.f)
     {
-        ray->dir = reflect(ray->dir, nl);
+        ray->dir = glm::reflect(ray->dir, nl);
         ray->orig = se.pt + nl * se.rayEpsilon;
     }
     else
     {
-        float3 tdir = ray->dir * nnt;
+        glm::vec3 tdir = ray->dir * nnt;
         tdir -= n * ((into ? 1.f : -1.f) * (ddn * nnt + sqrtf(cos2t)));
-        tdir = normalize(tdir);
+        tdir = glm::normalize(tdir);
 
         float R0 = (nt - nc)*(nt - nc) / (nt + nc)*(nt + nc);
-        float c = 1.f - (into ? -ddn : dot(tdir, n));
+        float c = 1.f - (into ? -ddn : glm::dot(tdir, n));
         float Re = R0 + (1.f - R0) * c * c * c * c * c;
         float Tr = 1 - Re; // Transmission
         float P = .25f + .5f * Re;
@@ -122,7 +125,7 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
         if(curand_uniform(&rng) < 0.25)
         {
             *T *= RP;
-            ray->dir = reflect(ray->dir, nl);
+            ray->dir = glm::reflect(ray->dir, nl);
             ray->orig = se.pt + nl * se.rayEpsilon;
         }
         else
@@ -134,22 +137,22 @@ __device__ void refractive_shading(const cudaScene& scene, SurfaceElement& se, c
     }*/
 }
 
-__device__ void glossy_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
+__device__ void glossy_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, glm::vec3* T)
 {
-    float3 nl = (dot(se.normal, ray->dir) < 0.f) ? se.normal : -se.normal;
+    glm::vec3 nl = (glm::dot(se.normal, ray->dir) < 0.f) ? se.normal : -se.normal;
     if(scene.materials[se.matID].roughness < ROUGH_THRESHOLD)
-        ray->dir = sample_phong(rng, scene.materials[se.matID].roughness, reflect(ray->dir, nl));
+        ray->dir = sample_phong(rng, scene.materials[se.matID].roughness, glm::reflect(ray->dir, nl));
     else
-        ray->dir = reflect(ray->dir, nl);
+        ray->dir = glm::reflect(ray->dir, nl);
     ray->orig = se.pt + ray->dir * se.rayEpsilon;
 
     *T *= scene.materials[se.matID].albedo;
 }
 
-__device__ void coat_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, float3* T)
+__device__ void coat_shading(const cudaScene& scene, SurfaceElement& se, curandState& rng, cudaRay* ray, glm::vec3* T)
 {
-    float3 nl = (dot(ray->dir, se.normal) < 0.f) ? se.normal : -se.normal;
-    float cosin = -dot(ray->dir, nl);
+    glm::vec3 nl = (glm::dot(ray->dir, se.normal) < 0.f) ? se.normal : -se.normal;
+    float cosin = -glm::dot(ray->dir, nl);
     float Pr = fresnel_schlick(1.f, scene.materials[se.matID].ior, cosin);
     float Pd = 1.f - Pr;
     float P = 0.25f + Pr * 0.5f;
@@ -163,9 +166,9 @@ __device__ void coat_shading(const cudaScene& scene, SurfaceElement& se, curandS
     else
     {
         if(scene.materials[se.matID].roughness < ROUGH_THRESHOLD)
-            ray->dir = sample_phong(rng, scene.materials[se.matID].roughness, reflect(ray->dir, nl));
+            ray->dir = sample_phong(rng, scene.materials[se.matID].roughness, glm::reflect(ray->dir, nl));
         else
-            ray->dir = reflect(ray->dir, nl);
+            ray->dir = glm::reflect(ray->dir, nl);
         *T *= scene.materials[se.matID].specular;
         *T *= (Pr / P);
     }

@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include <glm/fwd.hpp>
+
 #include <cuda_runtime.h>
 
 #include "helper_cuda.h"

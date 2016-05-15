@@ -6,12 +6,14 @@
 #define SUNPATHTRACER_TONEMAPPING_H
 
 #include <cuda_runtime.h>
-#include "helper_math.h"
 
-__inline__ __device__ float3 reinhard_tone_mapping(const float3& L, float exposure, float gamma = 1.f / 2.2f)
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
+__inline__ __device__ glm::vec3 reinhard_tone_mapping(const glm::vec3& L, float exposure, float gamma = 1.f / 2.2f)
 {
     //hardcoded exposure adjustment
-    float3 l = L * 16.f;
+    auto l = L * 16.f;
     l.x = 1.f - expf(-l.x * exposure);
     l.y = 1.f - expf(-l.y * exposure);
     l.z = 1.f - expf(-l.z * exposure);

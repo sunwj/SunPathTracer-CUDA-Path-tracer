@@ -10,8 +10,8 @@
 #include <vector>
 #include <cfloat>
 
-#include "helper_math.h"
-#include "Transformation.h"
+#include <glm/fwd.hpp>
+#include <glm/vec3.hpp>
 
 class ObjMesh
 {
@@ -19,18 +19,18 @@ public:
     ObjMesh() {}
     ObjMesh(std::string filename);
     void Load(std::string filename);
-    void ApplyTransform(Transformation& t);
+    void ApplyTransform(const glm::mat4& t);
 
 private:
     void FixNormal();
 
 public:
-    std::vector<float3> vertices;
-    std::vector<uint3> faces;
-    std::vector<float3> vertex_normals;
-    std::vector<float3> face_normals;
-    float3 vmax;
-    float3 vmin;
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::uvec3> faces;
+    std::vector<glm::vec3> vertex_normals;
+    std::vector<glm::vec3> face_normals;
+    glm::vec3 vmax;
+    glm::vec3 vmin;
 };
 
 #endif //SUNPATHTRACER_OBJMESH_H

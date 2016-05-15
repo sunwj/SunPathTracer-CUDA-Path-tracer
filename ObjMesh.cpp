@@ -4,10 +4,12 @@
 
 #include "ObjMesh.h"
 
+#include <glm/glm.hpp>
+
 ObjMesh::ObjMesh(std::string filename)
 {
-    vmax = make_float3(-FLT_MAX);
-    vmin = make_float3(FLT_MAX);
+    vmax = glm::vec3(-FLT_MAX);
+    vmin = glm::vec3(FLT_MAX);
 
     Load(filename);
 }
@@ -31,17 +33,17 @@ void ObjMesh::Load(std::string filename)
     {
         if((buffer[0] == 'v') && (buffer[1] == ' '))
         {
-            float3 v;
+            glm::vec3 v;
             sscanf(buffer, "v %f %f %f\n", &v.x, &v.y, &v.z);
-            vmax = fmaxf(vmax, v);
-            vmin = fminf(vmin, v);
+            vmax = glm::max(vmax, v);
+            vmin = glm::min(vmin, v);
             vertices.push_back(v);
         }
         else if((buffer[0] == 'f') && (buffer[1] == ' '))
         {
-            uint3 f;
+            glm::uvec3 f;
             sscanf(buffer, "f %u %u %u\n", &f.x, &f.y, &f.z);
-            f = f - 1;
+            f = f - glm::uvec3(1);
             faces.push_back(f);
         }
         else
@@ -49,7 +51,7 @@ void ObjMesh::Load(std::string filename)
     }
 
     //translate mesh center into local coordinate's origin
-    float3 center = (vmin + vmax) * 0.5f;
+    glm::vec3 center = (vmin + vmax) * 0.5f;
     vmin -= center;
     vmax -= center;
     for(auto& item : vertices)
@@ -76,7 +78,7 @@ void ObjMesh::FixNormal()
     face_normals.reserve(faces.size());
 
     for(auto& normal : vertex_normals)
-        normal = make_float3(0.f);
+        normal = glm::vec3(0.f);
 
     for(const auto& face : faces) {
         auto v1 = vertices[face.x];
@@ -88,15 +90,15 @@ void ObjMesh::FixNormal()
         auto e2 = v3 - v2;
         auto e3 = v1 - v3;
 
-        auto n1 = cross(e1, e2);
-        auto n2 = cross(e2, e3);
-        auto n3 = cross(e3, e1);
+        auto n1 = glm::cross(e1, e2);
+        auto n2 = glm::cross(e2, e3);
+        auto n3 = glm::cross(e3, e1);
 
-        auto l1 = length(n1);
-        auto l2 = length(n2);
-        auto l3 = length(n3);
+        auto l1 = glm::length(n1);
+        auto l2 = glm::length(n2);
+        auto l3 = glm::length(n3);
 
-        float3 n = make_float3(0.f);
+        glm::vec3 n = glm::vec3(0.f);
         if ((l1 > l2) && (l1 > l3))
             n = n1 / l1;
         else if (l2 > l3)
@@ -117,16 +119,16 @@ void ObjMesh::FixNormal()
     }
 }
 
-void ObjMesh::ApplyTransform(Transformation& t)
+void ObjMesh::ApplyTransform(const glm::mat4& t)
 {
-    vmax = make_float3(-FLT_MAX);
-    vmin = make_float3(FLT_MAX);
+    vmax = glm::vec3(-FLT_MAX);
+    vmin = glm::vec3(FLT_MAX);
 
     for(auto& item : vertices)
     {
-        item = t * item;
-        vmin = fminf(vmin, item);
-        vmax = fmaxf(vmax, item);
+        item = glm::vec3(t * glm::vec4(item, 1.f));
+        vmin = glm::min(vmin, item);
+        vmax = glm::max(vmax, item);
     }
 
 #ifdef __PRINT_INFO__
@@ -134,6 +136,6 @@ void ObjMesh::ApplyTransform(Transformation& t)
     std::cout<<"Mesh extent:"<<std::endl
         <<"max: ("<<vmax.x<<", "<<vmax.y<<", "<<vmax.z<<")"<<std::endl
         <<"min: ("<<vmin.x<<", "<<vmin.y<<", "<<vmin.z<<")"<<std::endl;
-    std::cout<<"Mesh diagnal length: "<<length(vmax - vmin)<<std::endl;
+    std::cout<<"Mesh diagnal length: "<<glm::length(vmax - vmin)<<std::endl;
 #endif
 }

@@ -7,6 +7,6 @@
 
 #include "render_parameters.h"
 
-extern "C" void test(uchar4* img, cudaScene& scene, RenderParameters& params);
+extern "C" void test(glm::u8vec4* img, cudaScene& scene, RenderParameters& params);
 
 #endif //SUNPATHTRACER_PATHTRACER_H

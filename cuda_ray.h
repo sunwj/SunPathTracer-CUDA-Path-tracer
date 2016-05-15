@@ -5,26 +5,28 @@
 #ifndef SUNPATHTRACER_RAY_H
 #define SUNPATHTRACER_RAY_H
 
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
 #include <cuda_runtime.h>
-#include "helper_math.h"
 
 class cudaRay
 {
 public:
     __device__ cudaRay() {}
-    __device__ cudaRay(const float3& orig, const float3& dir)
+    __device__ cudaRay(const glm::vec3& orig, const glm::vec3& dir)
     {
         this->orig = orig;
         this->dir = dir;
     }
 
-    __device__ float3 PointOnRay(float t) const
+    __device__ glm::vec3 PointOnRay(float t) const
     {
         return orig + t * dir;
     }
 public:
-    float3 orig;
-    float3 dir;
+    glm::vec3 orig;
+    glm::vec3 dir;
 };
 
 #endif //SUNPATHTRACER_RAY_H

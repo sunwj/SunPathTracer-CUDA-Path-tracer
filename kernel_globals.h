@@ -5,22 +5,25 @@
 #ifndef SUNPATHTRACER_KERNEL_GLOBALS_H
 #define SUNPATHTRACER_KERNEL_GLOBALS_H
 
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
 #include <cuda_runtime.h>
 
 //marcos
-#define IMG_BLACK make_uchar4(0, 0, 0, 0)
+#define IMG_BLACK glm::u8vec4(0)
 
 //data types
 struct SurfaceElement
 {
     float rayEpsilon;
-    float3 pt;
-    float3 normal;
+    glm::vec3 pt;
+    glm::vec3 normal;
     unsigned int matID;
 };
 
 //functions
-__inline__ __device__ void running_estimate(float3& acc_buffer, const float3& curr_est, unsigned int N)
+__inline__ __device__ void running_estimate(glm::vec3& acc_buffer, const glm::vec3& curr_est, unsigned int N)
 {
     acc_buffer += (curr_est - acc_buffer) / (N + 1.f);
 }

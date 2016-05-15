@@ -79,7 +79,7 @@ uint32_t BVH::Flatten(BVHNode *node, uint32_t* offset)
 
 BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
 {
-    maxDepth = max(depth, maxDepth);
+    maxDepth = fmaxf(depth, maxDepth);
     totalNodes++;
     BVHNode* node = new BVHNode;
 
@@ -111,7 +111,7 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
 
         //partition primitives into two sets and build children
         uint32_t mid = (end + start) / 2;
-        if((get_by_idx(centroidBounds.bmax, dim) - get_by_idx(centroidBounds.bmin, dim)) < 1e-4)
+        if((centroidBounds.bmax[dim] - centroidBounds.bmin[dim]) < 1e-4)
         {
             uint32_t firstPrimOffset = orderedPrims.size();
             for(auto i = start; i < end; ++i)
@@ -126,10 +126,10 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
 
         //partition primitives based on SAH
         std::vector<BucketInfo> buckets(nBuckets);
-        float extent = get_by_idx(centroidBounds.bmax, dim) - get_by_idx(centroidBounds.bmin, dim);
+        float extent = centroidBounds.bmax[dim] - centroidBounds.bmin[dim];
         for(auto i = start; i < end; ++i)
         {
-            uint32_t b = nBuckets * ((get_by_idx(workList[i].bounds.bcenter, dim) - get_by_idx(centroidBounds.bmin, dim)) / extent);
+            uint32_t b = nBuckets * ((workList[i].bounds.bcenter[dim] - centroidBounds.bmin[dim]) / extent);
             if(b == nBuckets) b -= 1;
             buckets[b].count++;
             buckets[b].bounds = Union(buckets[b].bounds, workList[i].bounds);
@@ -172,7 +172,7 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
         if(nPrims > MAX_LEAF_PRIM_NUM || minCost < nPrims)
         {
             auto compare = [&](BVHPrimitiveInfo& p) {
-                auto b = nBuckets * ((get_by_idx(p.bounds.bcenter, dim) - get_by_idx(centroidBounds.bmin, dim)) / extent);
+                auto b = nBuckets * ((p.bounds.bcenter[dim] - centroidBounds.bmin[dim]) / extent);
                 b = (b == nBuckets) ? (b - 1) : b;
                 return b <= bestSplit;
             };

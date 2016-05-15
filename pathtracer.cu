@@ -1,7 +1,6 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include "helper_math.h"
 #include "cuda_shape.h"
 #include "cuda_camera.h"
 #include "cuda_scene.h"
@@ -13,7 +12,7 @@
 auto constexpr WIDTH = 640;
 auto constexpr HEIGHT = 480;
 
-__global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters params, unsigned int hashed_N)
+__global__ void testSimpleScene(glm::u8vec4* img, cudaScene scene, RenderParameters params, unsigned int hashed_N)
 {
     unsigned int idx = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned int idy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -25,8 +24,8 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
     cudaRay ray;
     scene.camera.GenerateRay(idx, idy, rng, &ray);
 
-    float3 L = make_float3(0.f, 0.f, 0.f);
-    float3 T = make_float3(1.f, 1.f, 1.f);
+    glm::vec3 L = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 T = glm::vec3(1.f, 1.f, 1.f);
 
     SurfaceElement se;
     for(auto k = 0; k < params.rayDepth; ++k)
@@ -68,10 +67,10 @@ __global__ void testSimpleScene(uchar4* img, cudaScene scene, RenderParameters p
 
     running_estimate(params.hdr_buffer[offset], L, params.iteration_count);
     L = reinhard_tone_mapping(params.hdr_buffer[offset], params.exposure);
-    img[offset] = make_uchar4(fabsf(L.x) * 255, fabsf(L.y) * 255, fabsf(L.z) * 255, 0);
+    img[offset] = glm::u8vec4(fabsf(L.x) * 255, fabsf(L.y) * 255, fabsf(L.z) * 255, 0);
 }
 
-extern "C" void test(uchar4* img, cudaScene& scene, RenderParameters& params)
+extern "C" void test(glm::u8vec4* img, cudaScene& scene, RenderParameters& params)
 {
     dim3 blockSize(16, 16);
     dim3 gridSize(640 / blockSize.x, 480 / blockSize.y);

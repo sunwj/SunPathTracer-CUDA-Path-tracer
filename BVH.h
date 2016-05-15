@@ -5,6 +5,9 @@
 #ifndef SUNPATHTRACER_BVH_H
 #define SUNPATHTRACER_BVH_H
 
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
 #include "termcolor.hpp"
 #include "ObjMesh.h"
 
@@ -13,31 +16,31 @@ class BBox
 public:
     BBox()
     {
-        bmin = make_float3(FLT_MAX);
-        bmax = make_float3(-FLT_MAX);
-        bcenter = make_float3(0.f);
+        bmin = glm::vec3(FLT_MAX);
+        bmax = glm::vec3(-FLT_MAX);
+        bcenter = glm::vec3(0.f);
     }
 
-    BBox(const float3& _min, const float3& _max)
+    BBox(const glm::vec3& _min, const glm::vec3& _max)
     {
         bmin = _min;
         bmax = _max;
         bcenter = (bmin + bmax) * 0.5f;
     }
 
-    BBox(const float3& v1, const float3& v2, const float3& v3)
+    BBox(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3)
     {
-        bmin = make_float3(FLT_MAX);
-        bmax = make_float3(-FLT_MAX);
-        bcenter = make_float3(0.f);
+        bmin = glm::vec3(FLT_MAX);
+        bmax = glm::vec3(-FLT_MAX);
+        bcenter = glm::vec3(0.f);
 
-        bmin = fminf(bmin, v1);
-        bmin = fminf(bmin, v2);
-        bmin = fminf(bmin, v3);
+        bmin = glm::min(bmin, v1);
+        bmin = glm::min(bmin, v2);
+        bmin = glm::min(bmin, v3);
 
-        bmax = fmaxf(bmax, v1);
-        bmax = fmaxf(bmax, v2);
-        bmax = fmaxf(bmax, v3);
+        bmax = glm::max(bmax, v1);
+        bmax = glm::max(bmax, v2);
+        bmax = glm::max(bmax, v3);
 
         bcenter = (bmin + bmax) * 0.5f;
     }
@@ -51,7 +54,7 @@ public:
 
     int MaxExtent()
     {
-        float3 diag = bmax - bmin;
+        glm::vec3 diag = bmax - bmin;
         if((diag.x > diag.y) && (diag.x > diag.z))
             return 0;
         else if(diag.y > diag.z)
@@ -62,24 +65,24 @@ public:
 
     float SurfaceArea()
     {
-        float3 extent = bmax - bmin;
+        glm::vec3 extent = bmax - bmin;
         return (extent.x * extent.y + extent.x * extent.z + extent.y * extent.z) * 2.f;
     }
 
 public:
-    float3 bmax;
-    float3 bmin;
-    float3 bcenter;
+    glm::vec3 bmax;
+    glm::vec3 bmin;
+    glm::vec3 bcenter;
 };
 
-inline BBox Union(const BBox& b, const float3& v)
+inline BBox Union(const BBox& b, const glm::vec3& v)
 {
-    return BBox(fminf(b.bmin, v), fmaxf(b.bmax, v));
+    return BBox(glm::min(b.bmin, v), glm::max(b.bmax, v));
 }
 
 inline BBox Union(const BBox& b1, const BBox& b2)
 {
-    return BBox(fminf(b1.bmin, b2.bmin), fmaxf(b1.bmax, b2.bmax));
+    return BBox(glm::min(b1.bmin, b2.bmin), glm::max(b1.bmax, b2.bmax));
 }
 
 class BVHPrimitiveInfo
@@ -145,8 +148,8 @@ struct LBVHNode
         primitiveOffset = 0;
     }
 
-    float3 bMax;
-    float3 bMin;
+    glm::vec3 bMax;
+    glm::vec3 bMin;
     union {
         uint32_t primitiveOffset;
         uint32_t rightChildOffset;
@@ -168,7 +171,7 @@ private:
 public:
     ObjMesh mesh;
     std::vector<BVHPrimitiveInfo> workList;
-    std::vector<uint3> orderedPrims;
+    std::vector<glm::uvec3> orderedPrims;
     uint32_t totalNodes = 0;
     uint32_t maxDepth = 0;
     BVHNode* root;

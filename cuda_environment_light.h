@@ -7,6 +7,9 @@
 
 #include <string>
 
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
 #include <cuda_runtime.h>
 
 #ifdef __CUDACC__
@@ -23,19 +26,22 @@ public:
         tex(_tex)
     {}
 
-    __device__ float3 GetEnvRadiance(const float2& texcoord)
+    __device__ glm::vec3 GetEnvRadiance(const glm::vec2& texcoord)
     {
-        return tex ? make_float3(TEX2D_FLOAT4(tex, texcoord.x, texcoord.y)) : make_float3(0.f);
+        auto val = TEX2D_FLOAT4(tex, texcoord.x, texcoord.y);
+        return tex ? glm::vec3(val.x, val.y, val.z) : glm::vec3(0.f);
     }
 
-    __device__ float3 GetEnvRadiance(const float3& dir, float u_offset = 0.f, float v_offset = 0.f)
+    __device__ glm::vec3 GetEnvRadiance(const glm::vec3& dir, float u_offset = 0.f, float v_offset = 0.f)
     {
         float theta = acosf(dir.y);
         float phi = atan2f(dir.x, dir.z);
         phi = phi < 0.f ? phi + 2.f * M_PI : phi;
         float u = phi * 0.5f * M_1_PI;
         float v = theta * M_1_PI;
-        return tex ? make_float3(TEX2D_FLOAT4(tex, u + u_offset, v + v_offset)) : make_float3(0.f);
+
+        auto val = TEX2D_FLOAT4(tex, u + u_offset, v + v_offset);
+        return tex ? glm::vec3(val.x, val.y, val.z) : glm::vec3(0.f);
     }
 
 public:

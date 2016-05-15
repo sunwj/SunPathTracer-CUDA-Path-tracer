@@ -8,7 +8,9 @@
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 
-#include "helper_math.h"
+#define GLM_FORCE_INLINE
+#include <glm/glm.hpp>
+
 #include "cuda_ray.h"
 
 class cudaCamera
@@ -16,17 +18,17 @@ class cudaCamera
 public:
     __host__ __device__ cudaCamera() {}
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx = 45.f, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    __host__ __device__ cudaCamera(const glm::vec3& _pos, const glm::vec3& _u, const glm::vec3& _v, const glm::vec3& _w, float fovx = 45.f, unsigned int _imageW = 640, unsigned int _imageH = 480)
     {
         Setup(_pos, _u, _v, _w, fovx, _imageW, _imageH);
     }
 
-    __host__ __device__ cudaCamera(const float3& _pos, const float3& target, const float3& up, float fovx = 45.f, unsigned int _imageW = 640, unsigned int _imageH = 480)
+    __host__ __device__ cudaCamera(const glm::vec3& _pos, const glm::vec3& target, const glm::vec3& up, float fovx = 45.f, unsigned int _imageW = 640, unsigned int _imageH = 480)
     {
         Setup(_pos, target, up, fovx, _imageW, _imageH);
     }
 
-    __host__ __device__ void Setup(const float3& _pos, const float3& _u, const float3& _v, const float3& _w, float fovx, unsigned int _imageW, unsigned int _imageH)
+    __host__ __device__ void Setup(const glm::vec3& _pos, const glm::vec3& _u, const glm::vec3& _v, const glm::vec3& _w, float fovx, unsigned int _imageW, unsigned int _imageH)
     {
         pos = _pos;
         u = _u;
@@ -38,7 +40,7 @@ public:
         tanFovxOverTwo = tanf(fovx * 0.5f * M_PI / 180.f);
     }
 
-    __host__ __device__ void Setup(const float3& _pos, const float3& target, const float3& up, float fovx, unsigned int _imageW, unsigned int _imageH)
+    __host__ __device__ void Setup(const glm::vec3& _pos, const glm::vec3& target, const glm::vec3& up, float fovx, unsigned int _imageW, unsigned int _imageH)
     {
         pos = _pos;
         w = normalize(pos - target);
@@ -68,8 +70,8 @@ public:
     unsigned int imageW, imageH;
     float aspectRatio;
     float tanFovxOverTwo;
-    float3 pos;
-    float3 u, v, w;
+    glm::vec3 pos;
+    glm::vec3 u, v, w;
 };
 
 #endif //SUNPATHTRACER_CAMERA_H

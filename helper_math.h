@@ -1488,7 +1488,7 @@ inline __device__ __host__ float get_by_idx(const float3& v, int idx)
 
     return t;
 }
-__forceinline__ __device__ __host__ float3 inverse(const float3& v)
+__forceinline__ __device__ __host__ float3 safe_inverse(const float3& v)
 {
     constexpr float ooeps = 0.00000000000000000000000082718061255302767487140869206996285356581211090087890625f;
     float3 inv;
