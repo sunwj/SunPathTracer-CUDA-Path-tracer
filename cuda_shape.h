@@ -47,11 +47,11 @@ public:
         {
             discr = sqrtf(discr);
 
-            constexpr float eps = 0.0001f;
-            if((*t = (-b - discr) /*/ (2.f * a)*/ * 0.5f) > eps)
-                return true;
-            else if((*t = (-b + discr) /*/ (2.f * a)*/ * 0.5f) > eps)
-                return true;
+            //constexpr float eps = 0.0001f;
+            if((*t = (-b - discr) /*/ (2.f * a)*/ * 0.5f) > ray.tMin)
+                return *t < ray.tMax;
+            else if((*t = (-b + discr) /*/ (2.f * a)*/ * 0.5f) > ray.tMin)
+                return *t < ray.tMax;
             else
                 return false;
         }
@@ -86,7 +86,6 @@ public:
 
     __device__ bool Intersect(const cudaRay& ray, float* t) const
     {
-        //glm::vec3 invDir = inverse(ray.dir);
         glm::vec3 invDir = 1.f / ray.dir;
 
         glm::vec3 tmin = (bMin - ray.orig) * invDir;
@@ -98,16 +97,15 @@ public:
         float minmax = fminf(fminf(real_max.x, real_max.y), real_max.z);
         float maxmin = fmaxf(fmaxf(real_min.x, real_min.y), real_min.z);
 
-        constexpr float eps = 0.0001f;
-        if((minmax >= maxmin) && (minmax > eps))
+        //constexpr float eps = 0.0001f;
+        if((minmax >= maxmin) && (minmax > ray.tMin))
         {
             *t = maxmin;
-            return true;
+            return *t < ray.tMax;
         }
         return false;
     }
-
-    //todo: change if to index form
+    
     static __device__ bool Intersect(const cudaRay& ray, const glm::vec3& bmin, const glm::vec3& bmax, const glm::vec3& invRayDir, float* t)
     {
         float boundmin, boundmax;
@@ -159,7 +157,7 @@ public:
         tmax = fminf(tzmax, tmax);
 
         *t = tmin;
-        return tmax > 0.f;
+        return tmin < ray.tMax && tmax > ray.tMin;
     }
 
     __device__ glm::vec3 GetNormal(const glm::vec3& pt) const
@@ -217,7 +215,7 @@ public:
 
         *t = dot(edge2, qvec) * invDet;
 
-        return *t > eps;
+        return (*t > ray.tMin) && (*t < ray.tMax);
     }
 
     static __device__ bool Intersect(const cudaRay& ray, const glm::vec3& v1, const glm::vec3& edge1, const glm::vec3& edge2, float* t)
@@ -240,7 +238,7 @@ public:
 
         *t = dot(edge2, qvec) * invDet;
 
-        return *t > eps;
+        return (*t > ray.tMin) && (*t < ray.tMax);
     }
 
     __device__ glm::vec3 GetNormal(const glm::vec3& pt) const
@@ -273,9 +271,8 @@ public:
         float denom = -dot(ray.dir, normal);
         if(denom > 1e-6)
         {
-            constexpr float eps = 0.0001f;
             *t = -dot(p - ray.orig, normal) / denom;
-            return (*t > eps);
+            return (*t > ray.tMin) && (*t < ray.tMax);
         }
 
         return false;
@@ -315,8 +312,8 @@ public:
     __device__ bool Intersect(const cudaRay& ray, float* t, int32_t* id) const
     {
         glm::vec3 invRayDir = 1.f / ray.dir;
-        //glm::vec3 invRayDir = inverse(ray.dir);
-        float tmin = FLT_MAX;
+
+        float tmin = ray.tMax;
         int stackTop = 0;
         uint32_t stack[BVH_STACK_SIZE] = {0};
         stack[stackTop++] = 0;
@@ -358,7 +355,7 @@ public:
         }
 
         *t = tmin;
-        return *id != -1;
+        return (*id != -1) && (*t > ray.tMin) && (*t < ray.tMax);
     }
 
     __device__ glm::vec3 GetNormal(uint32_t id) const

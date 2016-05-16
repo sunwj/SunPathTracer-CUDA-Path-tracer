@@ -237,7 +237,7 @@ void init()
     //host_scene.AddSphere(cudaSphere(glm::vec3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("dragon-77k.obj");
+    ObjMesh mesh("sol.obj");
     glm::mat4 m = glm::mat4(1.f);
     auto scale = glm::scale(m, 50.f / glm::vec3(glm::length(mesh.vmax - mesh.vmin)));
     mesh.ApplyTransform(scale);
