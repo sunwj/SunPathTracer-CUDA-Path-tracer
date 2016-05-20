@@ -37,8 +37,8 @@ public:
 public:
     glm::vec3 orig;
     glm::vec3 dir;
-    float tMin;
-    float tMax;
+    mutable float tMin;
+    mutable float tMax;
 };
 
 #endif //SUNPATHTRACER_RAY_H

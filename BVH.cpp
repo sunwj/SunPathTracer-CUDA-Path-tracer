@@ -4,7 +4,6 @@
 
 #include "BVH.h"
 
-#define MIN_LEAF_PRIM_NUM 4
 #define MAX_LEAF_PRIM_NUM 8
 
 static constexpr uint32_t nBuckets = 16;
@@ -107,10 +106,12 @@ BVHNode* BVH::RecursiveBuild(uint32_t start, uint32_t end, uint32_t depth)
         for(auto i = start; i < end; ++i)
             centroidBounds = Union(centroidBounds, workList[i].bounds.bcenter);
 
+        // split along max span axis
         int dim = centroidBounds.MaxExtent();
 
         //partition primitives into two sets and build children
         uint32_t mid = (end + start) / 2;
+        // if max span axis is too small, create a leaf node
         if((centroidBounds.bmax[dim] - centroidBounds.bmin[dim]) < 1e-4)
         {
             uint32_t firstPrimOffset = orderedPrims.size();

@@ -1466,28 +1466,6 @@ inline __device__ __host__ float4 smoothstep(float4 a, float4 b, float4 x)
 ////////////////////////////////////////////////////////////////////////////////
 // self defined
 ////////////////////////////////////////////////////////////////////////////////
-
-inline __device__ __host__ float get_by_idx(const float3& v, int idx)
-{
-    float t;
-    switch(idx)
-    {
-        case 0:
-            t = v.x;
-            break;
-        case 1:
-            t = v.y;
-            break;
-        case 2:
-            t = v.z;
-            break;
-        default:
-            t = 0.f;
-            break;
-    }
-
-    return t;
-}
 __forceinline__ __device__ __host__ float3 safe_inverse(const float3& v)
 {
     constexpr float ooeps = 0.00000000000000000000000082718061255302767487140869206996285356581211090087890625f;

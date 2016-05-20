@@ -59,9 +59,9 @@ __global__ void testSimpleScene(glm::u8vec4* img, cudaScene scene, RenderParamet
         //russian roulette
         if(k >= 3)
         {
-            float p = (T.x + T.y + T.z) * 0.33333333f;
-            if(curand_uniform(&rng) > p) break;
-            T /= p;
+            float illum = illuminance(T);
+            if(curand_uniform(&rng) > illum) break;
+            T /= illum;
         }
     }
 

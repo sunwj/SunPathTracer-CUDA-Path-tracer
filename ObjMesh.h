@@ -10,8 +10,7 @@
 #include <vector>
 #include <cfloat>
 
-#include <glm/fwd.hpp>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 
 class ObjMesh
 {
@@ -26,9 +25,11 @@ private:
 
 public:
     std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> tex_coords;
     std::vector<glm::uvec3> faces;
     std::vector<glm::vec3> vertex_normals;
     std::vector<glm::vec3> face_normals;
+
     glm::vec3 vmax;
     glm::vec3 vmin;
 };

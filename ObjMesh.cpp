@@ -4,8 +4,6 @@
 
 #include "ObjMesh.h"
 
-#include <glm/glm.hpp>
-
 ObjMesh::ObjMesh(std::string filename)
 {
     vmax = glm::vec3(-FLT_MAX);

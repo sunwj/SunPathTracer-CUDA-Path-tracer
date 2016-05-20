@@ -28,7 +28,7 @@ __inline__ __device__ void running_estimate(glm::vec3& acc_buffer, const glm::ve
     acc_buffer += (curr_est - acc_buffer) / (N + 1.f);
 }
 
-__host__ __device__ unsigned int wangHash(unsigned int a)
+__inline__ __host__ __device__ unsigned int wangHash(unsigned int a)
 {
     //http://raytracey.blogspot.com/2015/12/gpu-path-tracing-tutorial-2-interactive.html
     a = (a ^ 61) ^ (a >> 16);
@@ -40,10 +40,16 @@ __host__ __device__ unsigned int wangHash(unsigned int a)
     return a;
 }
 
-__device__ bool scene_intersect(const cudaScene& scene, cudaRay& ray, SurfaceElement& se)
+__inline__ __host__ __device__ float illuminance(const glm::vec3& v)
+{
+    return 0.2126f * v.x + 0.7152f * v.y + 0.0722 * v.z;
+}
+
+__device__ bool scene_intersect(const cudaScene& scene, const cudaRay& ray, SurfaceElement& se)
 {
     bool intersected = false;
 
+    ray.tMax = FLT_MAX;
     float t = ray.tMax;
     for(auto i = 0; i < scene.num_spheres; ++i)
     {

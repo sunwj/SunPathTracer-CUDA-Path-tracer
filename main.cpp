@@ -174,7 +174,7 @@ void init()
     */
 
     //triangle mesh
-    host_scene.AddCamera(cudaCamera(glm::vec3(0.f, 50.0f, 140.0f), glm::vec3(0.f, 20.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 20.f));
+    host_scene.AddCamera(cudaCamera(glm::vec3(0.f, 40.0f, 140.0f), glm::vec3(0.f, 15.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 20.f));
     host_scene.AddEnvLight(cudaEnvironmentLight(create_environment_light_texture("LA_Downtown_Helipad_GoldenHour_Env.hdr")));
 
     //ground
@@ -237,9 +237,10 @@ void init()
     //host_scene.AddSphere(cudaSphere(glm::vec3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("sol.obj");
+    ObjMesh mesh("dragon-77k.obj");
     glm::mat4 m = glm::mat4(1.f);
     auto scale = glm::scale(m, 50.f / glm::vec3(glm::length(mesh.vmax - mesh.vmin)));
+    scale = glm::rotate(scale, float(20.f / 180.f * M_PI), glm::vec3(0.f, 1.f, 0.f));
     mesh.ApplyTransform(scale);
     auto translate = glm::translate(m, glm::vec3(0.f, 0.5f * (mesh.vmax.y - mesh.vmin.y), 10.f));
     mesh.ApplyTransform(translate);
