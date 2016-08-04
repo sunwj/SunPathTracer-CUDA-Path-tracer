@@ -237,7 +237,7 @@ void init()
     //host_scene.AddSphere(cudaSphere(glm::vec3(0.f, 70.f, 30.f), 20.f, host_scene.GetLastMaterialID()));
 
     //objmesh
-    ObjMesh mesh("dragon-77k.obj");
+    ObjMesh mesh("wineglass.obj");
     glm::mat4 m = glm::mat4(1.f);
     auto scale = glm::scale(m, 50.f / glm::vec3(glm::length(mesh.vmax - mesh.vmin)));
     scale = glm::rotate(scale, float(20.f / 180.f * M_PI), glm::vec3(0.f, 1.f, 0.f));
@@ -248,10 +248,10 @@ void init()
     export_linear_bvh(bvh, "bvh.bvh");
 
     cudaMaterial mat3;
-    mat3.albedo = glm::vec3(0.8f, 0.331f, 0.065f);
-    //mat3.albedo = glm::vec3(0.f, 0.8f, 0.661f);
-    //mat3.albedo = glm::vec3(1.f);
-    mat3.bsdf_type = BSDF_PLASTIC;
+    //mat3.albedo = glm::vec3(0.8f, 0.331f, 0.065f);
+    //mat3.albedo = glm::vec3(0.f, 0.9f, 0.f);
+    mat3.albedo = glm::vec3(1.f);
+    mat3.bsdf_type = BSDF_GLASS;
     mat3.ior = 1.6f;
     mat3.roughness = 99999.f;
     host_scene.AddMaterial(mat3);

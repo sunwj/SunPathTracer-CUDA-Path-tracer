@@ -34,10 +34,12 @@ public:
         bmin = glm::min(bmin, v1);
         bmin = glm::min(bmin, v2);
         bmin = glm::min(bmin, v3);
+        bmin -= 1e-6f;
 
         bmax = glm::max(bmax, v1);
         bmax = glm::max(bmax, v2);
         bmax = glm::max(bmax, v3);
+        bmax += 1e-6f;
 
         bcenter = (bmin + bmax) * 0.5f;
     }
